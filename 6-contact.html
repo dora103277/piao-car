@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>聯絡店家</title>
+<script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--pink:#ff85a1;--pink-light:#fff0f3;--pink-soft:#ffd6e0;--pink-mid:#ffb3c6;--brown:#6b3f2a;--radius:18px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--pink-light);min-height:100vh;}
+.topbar{background:linear-gradient(135deg,#ffb3c6,#ff85a1);padding:20px 18px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(255,133,161,.3);}
+.topbar h1{color:#fff;font-size:18px;font-weight:900;}
+.content{padding:20px 16px 50px;}
+
+/* 店家資訊卡 */
+.shop-card{background:#fff;border-radius:24px;border:2px solid var(--pink-soft);overflow:hidden;margin-bottom:20px;box-shadow:0 4px 20px rgba(255,133,161,.1);}
+.shop-banner{background:linear-gradient(135deg,#ffd6e0,#ffb3c6);padding:30px;text-align:center;font-size:64px;}
+.shop-body{padding:20px 22px;}
+.shop-name{font-size:20px;font-weight:900;color:var(--brown);text-align:center;}
+.shop-tagline{font-size:13px;color:#aaa;text-align:center;margin-top:4px;margin-bottom:18px;}
+.shop-info-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #f5f5f5;}
+.shop-info-row:last-child{border:none;}
+.shop-info-row .icon{font-size:20px;width:32px;text-align:center;}
+.shop-info-row .text{font-size:14px;color:var(--brown);}
+.shop-info-row .text small{display:block;font-size:11px;color:#aaa;margin-top:2px;}
+
+/* 快速聯絡按鈕 */
+.section-title{font-size:14px;font-weight:900;color:var(--brown);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.section-title::after{content:'';flex:1;height:2px;background:linear-gradient(90deg,var(--pink-mid),transparent);border-radius:2px;}
+
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+.contact-btn{background:#fff;border:2px solid var(--pink-soft);border-radius:18px;padding:20px 12px;
+  text-align:center;cursor:pointer;transition:all .2s;text-decoration:none;display:block;}
+.contact-btn:hover{border-color:var(--pink);transform:translateY(-3px);box-shadow:0 8px 20px rgba(255,133,161,.2);}
+.contact-btn .cb-icon{font-size:36px;margin-bottom:8px;}
+.contact-btn .cb-label{font-size:13px;font-weight:700;color:var(--brown);}
+.contact-btn .cb-sub{font-size:11px;color:#aaa;margin-top:3px;}
+
+/* 傳送訊息 */
+.msg-form{background:#fff;border-radius:var(--radius);border:2px solid var(--pink-soft);padding:18px;}
+.msg-types{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.msg-type-btn{padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;
+  background:var(--pink-light);border:2px solid var(--pink-soft);color:#c9667c;}
+.msg-type-btn.sel{background:var(--pink);border-color:var(--pink);color:#fff;}
+textarea{width:100%;padding:13px;border-radius:14px;border:2px solid var(--pink-soft);
+  font-family:'Noto Sans TC',sans-serif;font-size:14px;color:var(--brown);
+  outline:none;resize:none;min-height:100px;transition:border-color .2s;}
+textarea:focus{border-color:var(--pink);}
+.btn-send{width:100%;padding:14px;background:linear-gradient(135deg,var(--pink-mid),var(--pink));
+  color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:700;
+  font-family:'Noto Sans TC',sans-serif;cursor:pointer;margin-top:12px;transition:opacity .2s;}
+.btn-send:hover{opacity:.85;}
+
+/* 營業時間 */
+.hours-card{background:#fff;border-radius:var(--radius);border:2px solid var(--pink-soft);padding:18px;margin-bottom:20px;}
+.hour-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f8f8f8;font-size:13px;}
+.hour-row:last-child{border:none;}
+.hour-row .day{color:#aaa;}
+.hour-row .time{font-weight:700;color:var(--brown);}
+.hour-row.today .day{color:var(--pink);font-weight:700;}
+.hour-row.today .time{color:var(--pink);}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span style="font-size:22px">🎧</span>
+  <h1>聯絡店家</h1>
+</div>
+<div class="content">
+
+  <!-- 店家資訊 -->
+  <div class="shop-card">
+    <div class="shop-banner">🏪</div>
+    <div class="shop-body">
+      <div class="shop-name">請填入店家名稱</div>
+      <div class="shop-tagline">您最信賴的二手車專家</div>
+      <div class="shop-info-row">
+        <span class="icon">📍</span>
+        <div class="text">請填入店家地址<small>點擊查看地圖</small></div>
+      </div>
+      <div class="shop-info-row">
+        <span class="icon">📞</span>
+        <div class="text" id="phoneText">請填入電話號碼</div>
+      </div>
+      <div class="shop-info-row">
+        <span class="icon">⏰</span>
+        <div class="text">週一至週日 10:00 – 19:00</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 快速聯絡 -->
+  <div class="section-title">快速聯絡</div>
+  <div class="contact-grid">
+    <a class="contact-btn" href="tel:請填入電話">
+      <div class="cb-icon">📞</div>
+      <div class="cb-label">直接來電</div>
+      <div class="cb-sub">立即接通</div>
+    </a>
+    <div class="contact-btn" onclick="openMap()">
+      <div class="cb-icon">📍</div>
+      <div class="cb-label">查看地址</div>
+      <div class="cb-sub">Google Maps</div>
+    </div>
+    <div class="contact-btn" onclick="sendLineMsg()">
+      <div class="cb-icon">💬</div>
+      <div class="cb-label">LINE 訊息</div>
+      <div class="cb-sub">直接對話</div>
+    </div>
+    <a class="contact-btn" href="https://請填入你的LINE官方帳號連結" target="_blank">
+      <div class="cb-icon">🔗</div>
+      <div class="cb-label">加入好友</div>
+      <div class="cb-sub">分享給朋友</div>
+    </a>
+  </div>
+
+  <!-- 營業時間 -->
+  <div class="section-title">營業時間</div>
+  <div class="hours-card" id="hoursCard"></div>
+
+  <!-- 傳送訊息 -->
+  <div class="section-title">傳送訊息給店家</div>
+  <div class="msg-form">
+    <div class="msg-types">
+      <div class="msg-type-btn sel" onclick="selType(this,'詢問車況')">詢問車況</div>
+      <div class="msg-type-btn" onclick="selType(this,'預約問題')">預約問題</div>
+      <div class="msg-type-btn" onclick="selType(this,'付款問題')">付款問題</div>
+      <div class="msg-type-btn" onclick="selType(this,'其他')">其他</div>
+    </div>
+    <textarea id="msgText" placeholder="請輸入您的問題或留言…"></textarea>
+    <button class="btn-send" onclick="sendMsg()">傳送訊息 💌</button>
+  </div>
+
+</div>
+
+<script>
+const LIFF_ID = '請填入此頁面的 LIFF ID';
+const SHOP_ADDRESS = '請填入店家地址';
+const SHOP_PHONE = '請填入電話';
+let selectedType = '詢問車況';
+
+// 設定店家資訊
+document.getElementById('phoneText').textContent = SHOP_PHONE;
+
+// 渲染營業時間（今天高亮）
+const days = ['週日','週一','週二','週三','週四','週五','週六'];
+const hours = {
+  0:'10:00 – 19:00', 1:'10:00 – 19:00', 2:'10:00 – 19:00',
+  3:'10:00 – 19:00', 4:'10:00 – 19:00', 5:'10:00 – 19:00',
+  6:'10:00 – 19:00',
+};
+const todayIdx = new Date().getDay();
+document.getElementById('hoursCard').innerHTML = days.map((d,i) => `
+  <div class="hour-row ${i===todayIdx?'today':''}">
+    <span class="day">${d}${i===todayIdx?' (今天)':''}</span>
+    <span class="time">${hours[i]}</span>
+  </div>
+`).join('');
+
+async function init() {
+  await liff.init({ liffId: LIFF_ID });
+}
+
+function openMap() {
+  const url = `https://maps.google.com/?q=${encodeURIComponent(SHOP_ADDRESS)}`;
+  liff.openWindow({ url, external: true });
+}
+
+function selType(el, t) {
+  document.querySelectorAll('.msg-type-btn').forEach(b => b.classList.remove('sel'));
+  el.classList.add('sel');
+  selectedType = t;
+}
+
+async function sendMsg() {
+  const text = document.getElementById('msgText').value.trim();
+  if (!text) { alert('請輸入訊息內容'); return; }
+
+  if (liff.isInClient()) {
+    await liff.sendMessages([{
+      type: 'text',
+      text: `【${selectedType}】\n${text}`
+    }]);
+    alert('訊息已傳送！');
+    document.getElementById('msgText').value = '';
+  } else {
+    alert('請在 LINE 內開啟此頁面才能傳送訊息');
+  }
+}
+
+function sendLineMsg() {
+  if (liff.isInClient()) {
+    sendMsg();
+  }
+}
+
+init().catch(console.error);
+</script>
+</body>
+</html>

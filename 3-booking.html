@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>預約看車</title>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--pink:#ff85a1;--pink-light:#fff0f3;--pink-soft:#ffd6e0;--pink-mid:#ffb3c6;--brown:#6b3f2a;--radius:18px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--pink-light);min-height:100vh;}
+.topbar{background:linear-gradient(135deg,#ffb3c6,#ff85a1);padding:20px 18px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(255,133,161,.3);}
+.topbar h1{color:#fff;font-size:18px;font-weight:900;}
+.content{padding:20px 16px 50px;}
+
+.section-title{font-size:14px;font-weight:900;color:var(--brown);margin:18px 0 10px;display:flex;align-items:center;gap:8px;}
+.section-title::after{content:'';flex:1;height:2px;background:linear-gradient(90deg,var(--pink-mid),transparent);border-radius:2px;}
+
+/* 表單 */
+.form-group{margin-bottom:14px;}
+.form-group label{display:block;font-size:12px;font-weight:700;color:var(--brown);margin-bottom:6px;}
+.form-group input,.form-group select,.form-group textarea{
+  width:100%;padding:13px 16px;border-radius:14px;
+  border:2px solid var(--pink-soft);background:#fff;
+  font-family:'Noto Sans TC',sans-serif;font-size:14px;color:var(--brown);
+  outline:none;transition:border-color .2s;
+}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--pink);}
+.form-group textarea{resize:vertical;min-height:80px;}
+
+/* 時段選擇 */
+.time-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.time-btn{background:#fff;border:2px solid var(--pink-soft);border-radius:12px;padding:11px 6px;
+  text-align:center;font-size:13px;font-weight:600;color:var(--brown);cursor:pointer;transition:all .2s;}
+.time-btn.sel,.time-btn:hover{background:var(--pink);border-color:var(--pink);color:#fff;}
+.time-btn:disabled{opacity:.4;cursor:not-allowed;background:#f5f5f5;}
+
+/* 提交按鈕 */
+.btn-submit{width:100%;padding:16px;background:linear-gradient(135deg,var(--pink-mid),var(--pink));
+  color:#fff;border:none;border-radius:var(--radius);font-size:16px;font-weight:900;
+  font-family:'Noto Sans TC',sans-serif;cursor:pointer;margin-top:24px;
+  box-shadow:0 6px 20px rgba(255,133,161,.4);transition:opacity .2s;}
+.btn-submit:hover{opacity:.85;}
+.btn-submit:disabled{opacity:.5;cursor:not-allowed;}
+
+/* 成功畫面 */
+.success-screen{display:none;text-align:center;padding:50px 20px;}
+.success-screen.show{display:block;}
+.success-icon{font-size:80px;margin-bottom:20px;animation:bounce .6s ease;}
+@keyframes bounce{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+.success-screen h2{font-size:22px;font-weight:900;color:var(--brown);margin-bottom:10px;}
+.success-screen p{font-size:14px;color:#999;line-height:1.7;}
+.success-card{background:#fff;border-radius:var(--radius);border:2px solid var(--pink-soft);
+  padding:20px;margin:24px 0;text-align:left;}
+.success-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f5f5f5;font-size:13px;}
+.success-row:last-child{border:none;}
+.success-row .k{color:#aaa;}
+.success-row .v{font-weight:700;color:var(--brown);}
+.btn-close{width:100%;padding:14px;background:var(--pink-light);color:var(--pink);border:2px solid var(--pink-soft);
+  border-radius:var(--radius);font-size:15px;font-weight:700;font-family:'Noto Sans TC',sans-serif;cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span style="font-size:22px">📅</span>
+  <h1>預約看車</h1>
+</div>
+
+<div class="content" id="formArea">
+  <div class="section-title">選擇車輛</div>
+  <div class="form-group">
+    <label>想看的車款</label>
+    <select id="vehicleSel">
+      <option value="">— 請選擇 —</option>
+    </select>
+  </div>
+
+  <div class="section-title">個人資料</div>
+  <div class="form-group">
+    <label>姓名 *</label>
+    <input type="text" id="custName" placeholder="請輸入您的姓名">
+  </div>
+  <div class="form-group">
+    <label>聯絡電話 *</label>
+    <input type="tel" id="custPhone" placeholder="09xxxxxxxx">
+  </div>
+
+  <div class="section-title">選擇日期與時段</div>
+  <div class="form-group">
+    <label>預約日期 *</label>
+    <input type="date" id="bookDate" min="">
+  </div>
+  <div class="form-group">
+    <label>預約時段 *</label>
+    <div class="time-grid">
+      <div class="time-btn" onclick="selTime(this,'10:00')">10:00</div>
+      <div class="time-btn" onclick="selTime(this,'11:00')">11:00</div>
+      <div class="time-btn" onclick="selTime(this,'13:00')">13:00</div>
+      <div class="time-btn" onclick="selTime(this,'14:00')">14:00</div>
+      <div class="time-btn" onclick="selTime(this,'15:00')">15:00</div>
+      <div class="time-btn" onclick="selTime(this,'16:00')">16:00</div>
+    </div>
+  </div>
+  <div class="form-group">
+    <label>備註（選填）</label>
+    <textarea id="notes" placeholder="有什麼想告訴我們的嗎？"></textarea>
+  </div>
+
+  <button class="btn-submit" id="submitBtn" onclick="submitBooking()">確認預約 ✨</button>
+</div>
+
+<!-- 成功畫面 -->
+<div class="success-screen" id="successScreen">
+  <div class="success-icon">🎉</div>
+  <h2>預約成功！</h2>
+  <p>我們會盡快與您確認預約，<br>請保持電話暢通 💕</p>
+  <div class="success-card" id="successCard"></div>
+  <button class="btn-close" onclick="liff.closeWindow()">關閉視窗</button>
+</div>
+
+<script>
+const SUPABASE_URL = '請填入你的 Supabase URL';
+const SUPABASE_KEY = '請填入你的 Supabase anon key';
+const LIFF_ID      = '請填入此頁面的 LIFF ID';
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let lineUserId = '';
+let selectedTime = '';
+
+async function init() {
+  // 設定日期最小值為今天
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('bookDate').min = today;
+
+  await liff.init({ liffId: LIFF_ID });
+  if (!liff.isLoggedIn()) { liff.login(); return; }
+  const profile = await liff.getProfile();
+  lineUserId = profile.userId;
+
+  // 預填姓名（如果會員有資料）
+  const { data: member } = await sb.from('members').select('name,phone').eq('line_user_id', lineUserId).single();
+  if (member) {
+    document.getElementById('custName').value = member.name || '';
+    document.getElementById('custPhone').value = member.phone || '';
+  }
+
+  // 載入車輛清單
+  const { data: vehicles } = await sb.from('vehicles').select('id,name').eq('status','在庫');
+  const sel = document.getElementById('vehicleSel');
+  (vehicles||[]).forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v.id; opt.textContent = v.name; sel.appendChild(opt);
+  });
+
+  // 從 URL 帶過來的車名自動選取
+  const params = new URLSearchParams(window.location.search);
+  const vName = params.get('vehicle');
+  if (vName) {
+    const match = (vehicles||[]).find(v => v.name === vName);
+    if (match) sel.value = match.id;
+  }
+}
+
+function selTime(el, t) {
+  document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('sel'));
+  el.classList.add('sel');
+  selectedTime = t;
+}
+
+async function submitBooking() {
+  const name    = document.getElementById('custName').value.trim();
+  const phone   = document.getElementById('custPhone').value.trim();
+  const date    = document.getElementById('bookDate').value;
+  const vid     = document.getElementById('vehicleSel').value;
+  const vname   = document.getElementById('vehicleSel').selectedOptions[0]?.text || '';
+  const notes   = document.getElementById('notes').value.trim();
+
+  if (!name)         { alert('請填寫姓名'); return; }
+  if (!phone)        { alert('請填寫電話'); return; }
+  if (!date)         { alert('請選擇日期'); return; }
+  if (!selectedTime) { alert('請選擇時段'); return; }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = '送出中…';
+
+  const { error } = await sb.from('bookings').insert({
+    line_user_id: lineUserId,
+    customer_name: name,
+    phone,
+    vehicle_id: vid || null,
+    vehicle_name: vname !== '— 請選擇 —' ? vname : null,
+    booking_date: date,
+    booking_time: selectedTime,
+    notes,
+    status: '待確認',
+  });
+
+  if (error) {
+    alert('送出失敗，請再試一次：' + error.message);
+    btn.disabled = false; btn.textContent = '確認預約 ✨';
+    return;
+  }
+
+  // 顯示成功畫面
+  document.getElementById('formArea').style.display = 'none';
+  document.getElementById('successScreen').classList.add('show');
+  document.getElementById('successCard').innerHTML = `
+    <div class="success-row"><span class="k">姓名</span><span class="v">${name}</span></div>
+    <div class="success-row"><span class="k">車款</span><span class="v">${vname!=='— 請選擇 —'?vname:'未指定'}</span></div>
+    <div class="success-row"><span class="k">日期</span><span class="v">${date}</span></div>
+    <div class="success-row"><span class="k">時段</span><span class="v">${selectedTime}</span></div>
+    <div class="success-row"><span class="k">狀態</span><span class="v">⏳ 待店家確認</span></div>
+  `;
+}
+
+init().catch(console.error);
+</script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>我的預約</title>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--pink:#ff85a1;--pink-light:#fff0f3;--pink-soft:#ffd6e0;--pink-mid:#ffb3c6;--brown:#6b3f2a;--radius:18px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--pink-light);min-height:100vh;}
+.topbar{background:linear-gradient(135deg,#ffb3c6,#ff85a1);padding:20px 18px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(255,133,161,.3);}
+.topbar h1{color:#fff;font-size:18px;font-weight:900;}
+.content{padding:18px 14px 50px;}
+.loading{text-align:center;padding:60px 20px;color:#ccc;font-size:14px;}
+
+/* 篩選標籤 */
+.filter-tabs{display:flex;gap:8px;margin-bottom:18px;overflow-x:auto;padding-bottom:2px;}
+.filter-tabs::-webkit-scrollbar{display:none;}
+.tab{white-space:nowrap;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;
+  background:#fff;border:2px solid var(--pink-soft);color:#aaa;}
+.tab.active{background:var(--pink);border-color:var(--pink);color:#fff;}
+
+/* 預約卡 */
+.booking-list{display:flex;flex-direction:column;gap:14px;}
+.booking-card{background:#fff;border-radius:20px;border:2px solid var(--pink-soft);overflow:hidden;}
+.booking-head{background:linear-gradient(135deg,var(--pink-light),#fff);padding:14px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--pink-soft);}
+.booking-head .vehicle{font-size:14px;font-weight:900;color:var(--brown);}
+.status-pill{border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;}
+.s-待確認{background:#fff3cd;color:#856404;}
+.s-已確認{background:#d1f7d4;color:#0a6624;}
+.s-已取消{background:#f5f5f5;color:#999;}
+.s-已完成{background:#d0e8ff;color:#1456a0;}
+.booking-body{padding:14px 18px;}
+.brow{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:13px;color:#777;}
+.brow .icon{font-size:16px;}
+.brow strong{color:var(--brown);}
+.booking-actions{display:flex;gap:8px;padding:14px 18px;border-top:2px solid var(--pink-soft);}
+.btn-sm{flex:1;padding:10px;border-radius:12px;font-size:13px;font-weight:700;font-family:'Noto Sans TC',sans-serif;cursor:pointer;transition:all .2s;}
+.btn-cancel{background:#fff;border:2px solid #ffcccc;color:#e06060;}
+.btn-cancel:hover{background:#ffeeee;}
+
+/* 空狀態 */
+.empty{text-align:center;padding:60px 20px;}
+.empty .big{font-size:64px;margin-bottom:16px;}
+.empty h3{font-size:16px;font-weight:700;color:var(--brown);margin-bottom:8px;}
+.empty p{font-size:13px;color:#bbb;}
+.btn-go{display:inline-block;margin-top:20px;padding:12px 28px;background:linear-gradient(135deg,var(--pink-mid),var(--pink));
+  color:#fff;border-radius:14px;font-size:14px;font-weight:700;text-decoration:none;cursor:pointer;border:none;font-family:'Noto Sans TC',sans-serif;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span style="font-size:22px">📋</span>
+  <h1>我的預約</h1>
+</div>
+<div class="content">
+  <div class="filter-tabs">
+    <div class="tab active" onclick="filterBookings('all',this)">全部</div>
+    <div class="tab" onclick="filterBookings('待確認',this)">待確認</div>
+    <div class="tab" onclick="filterBookings('已確認',this)">已確認</div>
+    <div class="tab" onclick="filterBookings('已完成',this)">已完成</div>
+    <div class="tab" onclick="filterBookings('已取消',this)">已取消</div>
+  </div>
+  <div class="booking-list" id="list">
+    <div class="loading">載入中…</div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = '請填入你的 Supabase URL';
+const SUPABASE_KEY = '請填入你的 Supabase anon key';
+const LIFF_ID      = '請填入此頁面的 LIFF ID';
+const BOOKING_LIFF_URL = 'https://liff.line.me/請填入預約看車的LIFF_ID';
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let allBookings = [];
+let lineUserId = '';
+
+async function init() {
+  await liff.init({ liffId: LIFF_ID });
+  if (!liff.isLoggedIn()) { liff.login(); return; }
+  const profile = await liff.getProfile();
+  lineUserId = profile.userId;
+
+  const { data, error } = await sb.from('bookings')
+    .select('*')
+    .eq('line_user_id', lineUserId)
+    .order('booking_date', { ascending: false });
+
+  if (error) { document.getElementById('list').innerHTML = `<div class="loading">載入失敗</div>`; return; }
+  allBookings = data || [];
+  renderBookings(allBookings);
+}
+
+function filterBookings(status, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const filtered = status === 'all' ? allBookings : allBookings.filter(b => b.status === status);
+  renderBookings(filtered);
+}
+
+function renderBookings(list) {
+  if (!list.length) {
+    document.getElementById('list').innerHTML = `
+      <div class="empty">
+        <div class="big">📋</div>
+        <h3>還沒有預約記錄</h3>
+        <p>點下方按鈕立即預約看車吧！</p>
+        <button class="btn-go" onclick="liff.openWindow({url:'${BOOKING_LIFF_URL}',external:false})">立即預約看車</button>
+      </div>`;
+    return;
+  }
+  document.getElementById('list').innerHTML = list.map(b => `
+    <div class="booking-card" id="card-${b.id}">
+      <div class="booking-head">
+        <span class="vehicle">🚗 ${b.vehicle_name || '未指定車款'}</span>
+        <span class="status-pill s-${b.status}">${b.status}</span>
+      </div>
+      <div class="booking-body">
+        <div class="brow"><span class="icon">📅</span><strong>${b.booking_date}</strong></div>
+        <div class="brow"><span class="icon">🕐</span><strong>${b.booking_time}</strong></div>
+        <div class="brow"><span class="icon">👤</span>${b.customer_name}</div>
+        <div class="brow"><span class="icon">📞</span>${b.phone}</div>
+        ${b.notes?`<div class="brow"><span class="icon">💬</span>${b.notes}</div>`:''}
+      </div>
+      ${b.status !== '已取消' && b.status !== '已完成' ? `
+      <div class="booking-actions">
+        <button class="btn-sm btn-cancel" onclick="cancelBooking('${b.id}')">取消預約</button>
+      </div>` : ''}
+    </div>
+  `).join('');
+}
+
+async function cancelBooking(id) {
+  if (!confirm('確定要取消這筆預約嗎？')) return;
+  const { error } = await sb.from('bookings').update({ status: '已取消' }).eq('id', id);
+  if (error) { alert('取消失敗：' + error.message); return; }
+  // 更新本地資料
+  const b = allBookings.find(x => x.id === id);
+  if (b) b.status = '已取消';
+  renderBookings(allBookings);
+}
+
+init().catch(console.error);
+</script>
+</body>
+</html>
