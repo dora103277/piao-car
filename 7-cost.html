@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>成本管理 | 驃宇重車</title>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--pink:#ff85a1;--pink-light:#fff0f3;--pink-soft:#ffd6e0;--pink-mid:#ffb3c6;--brown:#6b3f2a;--dark:#1a1a1a;--red:#e53935;--gold:#f5c518;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--pink-light);min-height:100vh;}
+.topbar{background:linear-gradient(135deg,var(--dark),#333);padding:16px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+.topbar img{width:36px;height:36px;border-radius:8px;object-fit:cover;}
+.topbar-info h1{color:#fff;font-size:17px;font-weight:700;}
+.topbar-info p{color:var(--red);font-size:10px;letter-spacing:1px;}
+.content{padding:18px 14px 60px;}
+.loading{text-align:center;padding:80px 20px;color:#ccc;font-size:14px;}
+.lock-screen{text-align:center;padding:80px 20px;}
+.lock-icon{font-size:64px;margin-bottom:16px;}
+.lock-screen h3{font-size:16px;font-weight:700;color:#c9667c;margin-bottom:8px;}
+.section-title{font-size:13px;font-weight:900;color:var(--brown);margin:16px 0 10px;display:flex;align-items:center;gap:8px;}
+.section-title::after{content:'';flex:1;height:2px;background:linear-gradient(90deg,var(--pink-mid),transparent);border-radius:2px;}
+.form-group{margin-bottom:12px;}
+.form-group label{display:block;font-size:12px;font-weight:700;color:var(--brown);margin-bottom:6px;}
+.form-group select,.form-group input{width:100%;padding:12px 14px;border-radius:12px;border:2px solid var(--pink-soft);background:#fff;font-family:'Noto Sans TC',sans-serif;font-size:14px;color:var(--brown);outline:none;transition:border-color .2s;}
+.form-group select:focus,.form-group input:focus{border-color:var(--pink);}
+.summary-box{background:linear-gradient(135deg,#fff8e1,#fff3cd);border:2px solid #ffd54f;border-radius:16px;padding:16px;margin-bottom:18px;}
+.summary-box .label{font-size:12px;color:#856404;margin-bottom:4px;}
+.summary-box .total{font-size:22px;font-weight:900;color:#856404;}
+.profit-row{display:flex;justify-content:space-between;margin-top:10px;font-size:13px;}
+.profit-row .k{color:#aaa;}
+.profit-row .v{font-weight:700;}
+.profit-pos{color:#0a6624;}
+.profit-neg{color:var(--red);}
+.btn-save{width:100%;padding:14px;background:linear-gradient(135deg,var(--pink-mid),var(--pink));color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:700;font-family:'Noto Sans TC',sans-serif;cursor:pointer;margin-top:8px;transition:opacity .2s;}
+.btn-save:disabled{opacity:.5;}
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 24px;border-radius:24px;font-size:13px;font-weight:700;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+.toast.show{opacity:1;}
+.cost-list{display:flex;flex-direction:column;gap:12px;}
+.cost-card{background:#fff;border-radius:16px;border:2px solid var(--pink-soft);padding:14px 18px;cursor:pointer;transition:all .2s;}
+.cost-card:hover{border-color:var(--pink);}
+.cost-card-name{font-size:14px;font-weight:900;color:var(--brown);}
+.cost-card-info{font-size:12px;color:#aaa;margin-top:4px;}
+.cost-card-profit{font-size:15px;font-weight:700;margin-top:8px;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <img src="https://dora103277.github.io/piao-car/logo.jpg" onerror="this.style.display='none'">
+  <div class="topbar-info"><h1>成本管理</h1><p>PIAO YU.</p></div>
+</div>
+<div class="content" id="content">
+  <div class="loading">載入中…</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://ufgpslpjtpzrtctrwdmj.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_UCXnPFkHMCRyzWGVYDgwEQ_uGYtyglc';
+const LIFF_ID = '2009926811-ZVOvTTxQ'; // 先用聯絡店家的 LIFF ID，之後可新增專屬的
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let vehicles = [], selectedVehicle = null, existingCostId = null;
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+async function init() {
+  await liff.init({ liffId: LIFF_ID });
+  if (!liff.isLoggedIn()) { liff.login(); return; }
+  const profile = await liff.getProfile();
+  const { data: member } = await sb.from('members').select('role').eq('line_user_id', profile.userId).single();
+
+  if (!member || member.role !== 'boss') {
+    document.getElementById('content').innerHTML = `
+      <div class="lock-screen">
+        <div class="lock-icon">🔒</div>
+        <h3>僅老闆可使用此功能</h3>
+      </div>`;
+    return;
+  }
+
+  const { data } = await sb.from('vehicles').select('*').order('created_at', { ascending: false });
+  vehicles = data || [];
+  renderList();
+}
+
+async function renderList() {
+  const content = document.getElementById('content');
+  if (!vehicles.length) { content.innerHTML = `<div class="loading">尚無車輛資料</div>`; return; }
+
+  const costData = await Promise.all(vehicles.map(v =>
+    sb.from('vehicle_costs').select('*').eq('vehicle_id', v.id).single()
+  ));
+
+  content.innerHTML = `
+    <div class="section-title">選擇車輛編輯成本</div>
+    <div class="cost-list">
+      ${vehicles.map((v, i) => {
+        const c = costData[i].data;
+        const total = c ? (c.purchase_price||0)+(c.maintenance_cost||0)+(c.inspection_cost||0)+(c.transfer_cost||0)+(c.other_cost||0) : 0;
+        const profit = (v.price||0) - total;
+        return `<div class="cost-card" onclick="editCost('${v.id}')">
+          <div class="cost-card-name">🚗 ${v.name}</div>
+          <div class="cost-card-info">售價 NT$ ${(v.price||0).toLocaleString()} · ${v.status}</div>
+          ${c ? `<div class="cost-card-profit ${profit>=0?'profit-pos':'profit-neg'}">
+            毛利：NT$ ${profit.toLocaleString()}
+          </div>` : `<div class="cost-card-profit" style="color:#aaa;">尚未填入成本</div>`}
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+async function editCost(vehicleId) {
+  selectedVehicle = vehicles.find(v => v.id === vehicleId);
+  const { data: cost } = await sb.from('vehicle_costs').select('*').eq('vehicle_id', vehicleId).single();
+  existingCostId = cost?.id || null;
+
+  document.getElementById('content').innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <button onclick="renderList()" style="background:var(--pink-light);border:2px solid var(--pink-soft);border-radius:10px;padding:7px 14px;font-size:13px;font-weight:700;color:var(--pink);cursor:pointer;">← 返回</button>
+      <div style="font-size:14px;font-weight:900;color:var(--brown);">${selectedVehicle.name}</div>
+    </div>
+    <div class="section-title">成本細項</div>
+    <div class="form-group"><label>進車價格</label><input type="number" id="f-purchase" value="${cost?.purchase_price||''}" placeholder="0" oninput="calcTotal()"></div>
+    <div class="form-group"><label>整備費用</label><input type="number" id="f-maint" value="${cost?.maintenance_cost||''}" placeholder="0" oninput="calcTotal()"></div>
+    <div class="form-group"><label>驗車費用</label><input type="number" id="f-inspect" value="${cost?.inspection_cost||''}" placeholder="0" oninput="calcTotal()"></div>
+    <div class="form-group"><label>過戶手續費</label><input type="number" id="f-transfer" value="${cost?.transfer_cost||''}" placeholder="0" oninput="calcTotal()"></div>
+    <div class="form-group"><label>其他費用</label><input type="number" id="f-other" value="${cost?.other_cost||''}" placeholder="0" oninput="calcTotal()"></div>
+    <div class="summary-box" id="summaryBox"></div>
+    <button class="btn-save" onclick="saveCost()">儲存成本資料 💾</button>
+  `;
+  calcTotal();
+}
+
+function calcTotal() {
+  const p = parseInt(document.getElementById('f-purchase')?.value)||0;
+  const m = parseInt(document.getElementById('f-maint')?.value)||0;
+  const i = parseInt(document.getElementById('f-inspect')?.value)||0;
+  const t = parseInt(document.getElementById('f-transfer')?.value)||0;
+  const o = parseInt(document.getElementById('f-other')?.value)||0;
+  const total = p+m+i+t+o;
+  const profit = (selectedVehicle?.price||0) - total;
+  document.getElementById('summaryBox').innerHTML = `
+    <div class="label">總成本</div>
+    <div class="total">NT$ ${total.toLocaleString()}</div>
+    <div class="profit-row"><span class="k">售價</span><span class="v">NT$ ${(selectedVehicle?.price||0).toLocaleString()}</span></div>
+    <div class="profit-row"><span class="k">預估毛利</span><span class="v ${profit>=0?'profit-pos':'profit-neg'}">NT$ ${profit.toLocaleString()}</span></div>
+  `;
+}
+
+async function saveCost() {
+  const data = {
+    vehicle_id: selectedVehicle.id,
+    purchase_price: parseInt(document.getElementById('f-purchase').value)||0,
+    maintenance_cost: parseInt(document.getElementById('f-maint').value)||0,
+    inspection_cost: parseInt(document.getElementById('f-inspect').value)||0,
+    transfer_cost: parseInt(document.getElementById('f-transfer').value)||0,
+    other_cost: parseInt(document.getElementById('f-other').value)||0,
+  };
+
+  let error;
+  if (existingCostId) {
+    ({ error } = await sb.from('vehicle_costs').update(data).eq('id', existingCostId));
+  } else {
+    ({ error } = await sb.from('vehicle_costs').insert(data));
+  }
+
+  if (error) { alert('儲存失敗：' + error.message); return; }
+  showToast('✅ 成本資料已儲存');
+  setTimeout(() => renderList(), 1500);
+}
+
+init().catch(console.error);
+</script>
+</body>
+</html>

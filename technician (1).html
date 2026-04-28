@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>技師工作台 | 驃宇重車</title>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--pink:#ff85a1;--pink-light:#fff0f3;--pink-soft:#ffd6e0;--pink-mid:#ffb3c6;--brown:#6b3f2a;--dark:#1a1a1a;--red:#e53935;--green:#0a6624;--green-light:#d1f7d4;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans TC',sans-serif;background:#f5f5f5;min-height:100vh;}
+.topbar{background:linear-gradient(135deg,var(--dark),#333);padding:16px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+.topbar img{width:36px;height:36px;border-radius:8px;object-fit:cover;}
+.topbar-info h1{color:#fff;font-size:17px;font-weight:700;}
+.topbar-info p{color:var(--red);font-size:10px;letter-spacing:1px;}
+.tabs{display:flex;background:#fff;border-bottom:2px solid #eee;}
+.tab{flex:1;padding:14px;text-align:center;font-size:13px;font-weight:700;color:#aaa;cursor:pointer;transition:all .2s;}
+.tab.active{color:var(--pink);border-bottom:3px solid var(--pink);}
+.content{padding:14px 14px 60px;}
+.loading{text-align:center;padding:60px 20px;color:#ccc;}
+
+/* 預約卡 */
+.booking-card{background:#fff;border-radius:16px;border:2px solid #eee;overflow:hidden;margin-bottom:12px;}
+.booking-head{background:#f9f9f9;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #eee;}
+.booking-title{font-size:13px;font-weight:900;color:var(--brown);}
+.status-pill{border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;}
+.s-待確認{background:#fff3cd;color:#856404;}
+.s-已確認{background:var(--green-light);color:var(--green);}
+.s-已完成{background:#d0e8ff;color:#1456a0;}
+.booking-body{padding:12px 16px;}
+.brow{font-size:12px;color:#666;margin-bottom:5px;display:flex;align-items:center;gap:6px;}
+.action-btns{display:flex;gap:8px;padding:12px 16px;border-top:2px solid #eee;flex-wrap:wrap;}
+.btn{padding:9px 16px;border-radius:10px;font-size:12px;font-weight:700;border:none;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:all .2s;}
+.btn-primary{background:linear-gradient(135deg,var(--pink-mid),var(--pink));color:#fff;}
+.btn-green{background:var(--green-light);color:var(--green);}
+.btn-outline{background:#fff;border:2px solid #eee;color:#666;}
+
+/* 工單上傳區 */
+.upload-area{background:#fff;border-radius:16px;border:2px dashed var(--pink-soft);padding:30px;text-align:center;margin-bottom:14px;cursor:pointer;transition:all .2s;}
+.upload-area:hover{border-color:var(--pink);background:var(--pink-light);}
+.upload-icon{font-size:48px;margin-bottom:10px;}
+.upload-text{font-size:14px;font-weight:700;color:var(--brown);}
+.upload-sub{font-size:12px;color:#aaa;margin-top:5px;}
+.preview-img{width:100%;border-radius:12px;margin-bottom:14px;max-height:300px;object-fit:contain;background:#f9f9f9;}
+
+/* AI 辨識結果 */
+.ai-result{background:#fff;border-radius:16px;border:2px solid var(--pink-soft);padding:16px;margin-bottom:14px;}
+.ai-title{font-size:13px;font-weight:900;color:var(--brown);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.form-group{margin-bottom:10px;}
+.form-group label{display:block;font-size:11px;font-weight:700;color:#aaa;margin-bottom:4px;}
+.form-group input,.form-group select{width:100%;padding:10px 12px;border-radius:10px;border:2px solid #eee;background:#f9f9f9;font-family:'Noto Sans TC',sans-serif;font-size:13px;color:var(--brown);outline:none;}
+.form-group input:focus{border-color:var(--pink);}
+.item-row{display:grid;grid-template-columns:1fr auto auto;gap:8px;margin-bottom:8px;align-items:center;}
+.item-row input{padding:8px 10px;border-radius:8px;border:2px solid #eee;font-size:12px;color:var(--brown);outline:none;}
+.item-row .price{padding:8px 10px;border-radius:8px;border:2px solid #eee;font-size:12px;color:var(--brown);width:80px;outline:none;}
+.remove-btn{width:28px;height:28px;border-radius:50%;background:#ffeeee;border:none;color:var(--red);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.add-item-btn{background:var(--pink-light);border:2px solid var(--pink-soft);border-radius:10px;padding:8px;width:100%;font-size:12px;font-weight:700;color:var(--pink);cursor:pointer;border:none;font-family:'Noto Sans TC',sans-serif;margin-bottom:12px;}
+.total-box{background:var(--pink-light);border-radius:12px;padding:12px 16px;margin-bottom:14px;}
+.total-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;}
+.total-row .k{color:#aaa;}
+.total-row .v{font-weight:700;color:var(--brown);}
+.total-row.big .v{font-size:18px;color:var(--pink);}
+.btn-full{width:100%;padding:14px;background:linear-gradient(135deg,var(--pink-mid),var(--pink));color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:700;font-family:'Noto Sans TC',sans-serif;cursor:pointer;margin-top:4px;}
+.btn-full:disabled{opacity:.5;}
+.analyzing{text-align:center;padding:30px;color:#aaa;font-size:13px;}
+.analyzing-icon{font-size:40px;margin-bottom:10px;animation:spin 1s linear infinite;}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+/* 庫存 */
+.inventory-card{background:#fff;border-radius:14px;border:2px solid #eee;padding:14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+.inv-name{font-size:13px;font-weight:700;color:var(--brown);}
+.inv-spec{font-size:11px;color:#aaa;margin-top:2px;}
+.inv-stock{font-size:18px;font-weight:900;color:var(--pink);}
+.inv-unit{font-size:11px;color:#aaa;}
+.low-stock{color:var(--red);}
+.section-title{font-size:13px;font-weight:900;color:var(--brown);margin:14px 0 10px;display:flex;align-items:center;gap:8px;}
+.section-title::after{content:'';flex:1;height:2px;background:linear-gradient(90deg,var(--pink-mid),transparent);border-radius:2px;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <img src="https://dora103277.github.io/piao-car/logo.jpg" onerror="this.style.display='none'">
+  <div class="topbar-info"><h1>技師工作台</h1><p>PIAO YU.</p></div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('bookings',this)">📋 保養預約</div>
+  <div class="tab" onclick="switchTab('workorder',this)">📸 工單上傳</div>
+  <div class="tab" onclick="switchTab('inventory',this)">📦 庫存查看</div>
+</div>
+
+<div class="content" id="content">
+  <div class="loading">載入中…</div>
+</div>
+
+<input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(event)">
+
+<script>
+const SUPABASE_URL = 'https://ufgpslpjtpzrtctrwdmj.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_UCXnPFkHMCRyzWGVYDgwEQ_uGYtyglc';
+const LIFF_ID = '2009926811-pBs7ZHgf'; // 我的預約的LIFF
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let currentTab = 'bookings';
+let lineUserId = '', memberName = '';
+let photoBase64 = '', workItems = [];
+
+async function init() {
+  await liff.init({ liffId: LIFF_ID });
+  if (!liff.isLoggedIn()) { liff.login(); return; }
+  const profile = await liff.getProfile();
+  lineUserId = profile.userId;
+  memberName = profile.displayName;
+
+  const { data: member } = await sb.from('members').select('role,name').eq('line_user_id', lineUserId).single();
+  if (!member || (member.role !== 'technician' && member.role !== 'boss' && member.role !== 'secretary')) {
+    document.getElementById('content').innerHTML = `<div class="loading">🔒 此頁面僅限技師使用</div>`;
+    return;
+  }
+  if (member.name) memberName = member.name;
+  loadTab('bookings');
+}
+
+function switchTab(tab, el) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  loadTab(tab);
+}
+
+async function loadTab(tab) {
+  if (tab === 'bookings') await loadBookings();
+  else if (tab === 'workorder') loadWorkorder();
+  else if (tab === 'inventory') await loadInventory();
+}
+
+async function loadBookings() {
+  const { data } = await sb.from('bookings').select('*')
+    .eq('booking_type', '保養').order('booking_date', { ascending: true });
+  const list = data || [];
+
+  if (!list.length) {
+    document.getElementById('content').innerHTML = `<div class="loading">目前沒有保養預約</div>`;
+    return;
+  }
+
+  document.getElementById('content').innerHTML = list.map(b => `
+    <div class="booking-card">
+      <div class="booking-head">
+        <span class="booking-title">🔧 ${b.vehicle_name||'未指定車款'}</span>
+        <span class="status-pill s-${b.status}">${b.status}</span>
+      </div>
+      <div class="booking-body">
+        <div class="brow">📅 ${b.booking_date} &nbsp; 🕐 ${b.booking_time}</div>
+        <div class="brow">👤 ${b.customer_name} &nbsp; 📞 ${b.phone}</div>
+        ${b.notes?`<div class="brow">💬 ${b.notes}</div>`:''}
+      </div>
+      <div class="action-btns">
+        ${b.status==='待確認'||b.status==='已確認'?`
+        <button class="btn btn-primary" onclick="startWorkorder('${b.id}','${b.vehicle_name||''}','${b.customer_name}')">
+          📸 上傳工單
+        </button>`:''}
+        ${b.status==='待確認'?`<button class="btn btn-green" onclick="confirmBooking('${b.id}')">✓ 確認接單</button>`:''}
+      </div>
+    </div>
+  `).join('');
+}
+
+async function confirmBooking(id) {
+  await sb.from('bookings').update({ status: '已確認' }).eq('id', id);
+  loadBookings();
+}
+
+function startWorkorder(bookingId, vehicleName, customerName) {
+  currentBookingId = bookingId;
+  currentVehicleName = vehicleName;
+  document.querySelectorAll('.tab')[1].click();
+  setTimeout(() => {
+    document.getElementById('vehicle-name-input').value = vehicleName;
+  }, 100);
+}
+
+let currentBookingId = null, currentVehicleName = '';
+
+function loadWorkorder() {
+  workItems = [];
+  document.getElementById('content').innerHTML = `
+    <div class="section-title">拍攝或上傳工單</div>
+    <div class="upload-area" onclick="document.getElementById('photoInput').click()">
+      <div class="upload-icon">📸</div>
+      <div class="upload-text">點此拍照或選擇工單圖片</div>
+      <div class="upload-sub">AI 將自動辨識工單內容</div>
+    </div>
+    <div id="photo-preview"></div>
+    <div id="ai-form" style="display:none;">
+      <div class="ai-result">
+        <div class="ai-title">✨ AI 辨識結果（請確認）</div>
+        <div class="form-group"><label>車牌號碼</label><input type="text" id="plate-input" placeholder="例：NXF-3609"></div>
+        <div class="form-group"><label>廠牌機型</label><input type="text" id="vehicle-name-input" placeholder="例：A15m"></div>
+        <div class="form-group"><label>里程數</label><input type="number" id="mileage-input" placeholder="例：13725"></div>
+        <div class="form-group"><label>服務人員</label><input type="text" id="technician-input" value="${memberName}" placeholder="技師姓名"></div>
+        <div class="section-title" style="margin-top:14px;">保養項目</div>
+        <div id="items-list"></div>
+        <button class="add-item-btn" onclick="addItem()">＋ 新增項目</button>
+        <div class="total-box">
+          <div class="total-row"><span class="k">合計</span><span class="v" id="total-display">NT$ 0</span></div>
+          <div class="total-row big"><span class="k">實收金額</span><span class="v" id="actual-display">NT$ 0</span></div>
+        </div>
+        <div class="form-group"><label>實收金額</label><input type="number" id="actual-input" placeholder="0" oninput="updateTotal()"></div>
+        <div class="form-group"><label>備註</label><input type="text" id="notes-input" placeholder="選填"></div>
+      </div>
+      <button class="btn-full" onclick="submitWorkorder()">送出工單申請（等秘書確認扣庫存）</button>
+    </div>
+  `;
+}
+
+async function handlePhoto(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    photoBase64 = e.target.result.split(',')[1];
+    document.getElementById('photo-preview').innerHTML = `
+      <img src="${e.target.result}" class="preview-img">
+      <div class="analyzing"><div class="analyzing-icon">⚙️</div>AI 辨識中，請稍候…</div>
+    `;
+
+    await analyzeWorkorder(e.target.result);
+  };
+  reader.readAsDataURL(file);
+}
+
+async function analyzeWorkorder(imageDataUrl) {
+  try {
+    const base64 = imageDataUrl.split(',')[1];
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: { type: 'base64', media_type: 'image/jpeg', data: base64 }
+            },
+            {
+              type: 'text',
+              text: '這是一張維修估價單，請辨識以下欄位並以JSON格式回傳，不要有其他文字：{"plate":"車牌號碼","vehicle":"廠牌機型","mileage":"里程數數字","technician":"服務人員","items":[{"name":"品名","price":價格數字}],"total":合計數字,"actual":實收金額數字}'
+            }
+          ]
+        }]
+      })
+    });
+
+    const data = await response.json();
+    const text = data.content[0].text;
+    const json = JSON.parse(text.replace(/```json|```/g,'').trim());
+
+    document.getElementById('photo-preview').querySelector('.analyzing')?.remove();
+    document.getElementById('ai-form').style.display = 'block';
+
+    if (json.plate) document.getElementById('plate-input').value = json.plate;
+    if (json.vehicle) document.getElementById('vehicle-name-input').value = json.vehicle;
+    if (json.mileage) document.getElementById('mileage-input').value = json.mileage;
+    if (json.technician) document.getElementById('technician-input').value = json.technician;
+    if (json.actual) document.getElementById('actual-input').value = json.actual;
+
+    workItems = json.items || [];
+    renderItems();
+    updateTotal();
+
+  } catch(e) {
+    document.getElementById('photo-preview').querySelector('.analyzing').innerHTML = '辨識失敗，請手動填寫';
+    document.getElementById('ai-form').style.display = 'block';
+    workItems = [];
+    renderItems();
+  }
+}
+
+function renderItems() {
+  document.getElementById('items-list').innerHTML = workItems.map((item, i) => `
+    <div class="item-row">
+      <input type="text" value="${item.name||''}" placeholder="品名" onchange="workItems[${i}].name=this.value;updateTotal()">
+      <input class="price" type="number" value="${item.price||''}" placeholder="價格" onchange="workItems[${i}].price=parseInt(this.value)||0;updateTotal()">
+      <button class="remove-btn" onclick="removeItem(${i})">×</button>
+    </div>
+  `).join('');
+}
+
+function addItem() { workItems.push({name:'',price:0}); renderItems(); updateTotal(); }
+function removeItem(i) { workItems.splice(i,1); renderItems(); updateTotal(); }
+function updateTotal() {
+  const total = workItems.reduce((s,i) => s+(parseInt(i.price)||0), 0);
+  const actual = parseInt(document.getElementById('actual-input')?.value)||total;
+  document.getElementById('total-display').textContent = 'NT$ ' + total.toLocaleString();
+  document.getElementById('actual-display').textContent = 'NT$ ' + actual.toLocaleString();
+}
+
+async function submitWorkorder() {
+  const plate = document.getElementById('plate-input').value.trim();
+  const vehicle = document.getElementById('vehicle-name-input').value.trim();
+  const mileage = document.getElementById('mileage-input').value;
+  const technician = document.getElementById('technician-input').value.trim();
+  const actual = parseInt(document.getElementById('actual-input').value)||0;
+  const notes = document.getElementById('notes-input').value.trim();
+  const total = workItems.reduce((s,i) => s+(parseInt(i.price)||0), 0);
+
+  if (!vehicle) { alert('請填寫車款'); return; }
+
+  // 建立保養記錄
+  const { data: maint, error } = await sb.from('vehicle_maintenance').insert({
+    vehicle_name: vehicle,
+    plate,
+    service_date: new Date().toISOString().split('T')[0],
+    notes,
+    items: workItems,
+    total_charge: actual,
+    status: '待確認',
+    technician_line_id: lineUserId,
+  }).select().single();
+
+  if (error) { alert('送出失敗：' + error.message); return; }
+
+  // 建立庫存扣除申請
+  await sb.from('inventory_requests').insert({
+    maintenance_id: maint.id,
+    technician_line_id: lineUserId,
+    technician_name: technician,
+    vehicle_name: vehicle,
+    plate,
+    items: workItems.map(i => ({ name: i.name, quantity: 1, price: i.price })),
+    status: '待確認',
+  });
+
+  // 更新對應預約狀態
+  if (currentBookingId) {
+    await sb.from('bookings').update({ status: '已完成' }).eq('id', currentBookingId);
+  }
+
+  alert('✅ 工單已送出！等待秘書確認扣除庫存');
+  currentBookingId = null;
+  loadWorkorder();
+}
+
+async function loadInventory() {
+  const { data } = await sb.from('parts_inventory').select('*').order('name');
+  const list = data || [];
+
+  if (!list.length) {
+    document.getElementById('content').innerHTML = `<div class="loading">目前沒有庫存資料</div>`;
+    return;
+  }
+
+  document.getElementById('content').innerHTML = `
+    <div class="section-title">零件庫存</div>
+    ${list.map(p => `
+      <div class="inventory-card">
+        <div>
+          <div class="inv-name">${p.name}</div>
+          <div class="inv-spec">${p.category||''} ${p.spec||''} ${p.brand||''}</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="inv-stock ${p.box_quantity<=3?'low-stock':''}">${p.box_quantity}</div>
+          <div class="inv-unit">${p.unit||'個'}</div>
+        </div>
+      </div>
+    `).join('')}
+  `;
+}
+
+init().catch(console.error);
+</script>
+</body>
+</html>
