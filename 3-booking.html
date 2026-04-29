@@ -109,21 +109,36 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--pink-light);min-heig
     <div class="date-warn" id="dateWarn" style="display:none;">⚠️ 保養假日需提前兩天以上預約，此日期不可選</div>
   </div>
 
-  <div class="section-title">預約時間（24小時制）</div>
+  <div class="section-title">預約時間</div>
   <div class="time-section">
-    <div class="ampm-toggle">
-      <div class="ampm-btn active" id="am-btn" onclick="setAmPm('am')">上午</div>
-      <div class="ampm-btn" id="pm-btn" onclick="setAmPm('pm')">下午</div>
-    </div>
-    <div class="time-display">
-      <div class="hour-box" id="hourDisplay">9</div>
-      <div class="colon">:</div>
-      <div class="min-toggle">
-        <div class="min-btn active" id="min00" onclick="setMin('00')">00</div>
-        <div class="min-btn" id="min30" onclick="setMin('30')">30</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;">
+      <div style="text-align:center;">
+        <div style="font-size:11px;color:#aaa;margin-bottom:4px;">小時</div>
+        <div style="height:120px;overflow:hidden;position:relative;width:70px;">
+          <div id="hourScroll" style="overflow-y:scroll;height:120px;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;"
+            onscroll="updateHourFromScroll()">
+            <div style="height:40px;"></div>
+            <div id="hourItems"></div>
+            <div style="height:40px;"></div>
+          </div>
+          <div style="position:absolute;top:40px;left:0;right:0;height:40px;border-top:2px solid var(--pink);border-bottom:2px solid var(--pink);pointer-events:none;border-radius:8px;background:rgba(255,133,161,.08);"></div>
+        </div>
+      </div>
+      <div style="font-size:28px;font-weight:900;color:#ccc;">:</div>
+      <div style="text-align:center;">
+        <div style="font-size:11px;color:#aaa;margin-bottom:4px;">分鐘</div>
+        <div style="height:120px;overflow:hidden;position:relative;width:70px;">
+          <div id="minScroll" style="overflow-y:scroll;height:120px;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;"
+            onscroll="updateMinFromScroll()">
+            <div style="height:40px;"></div>
+            <div id="minItems"></div>
+            <div style="height:40px;"></div>
+          </div>
+          <div style="position:absolute;top:40px;left:0;right:0;height:40px;border-top:2px solid var(--pink);border-bottom:2px solid var(--pink);pointer-events:none;border-radius:8px;background:rgba(255,133,161,.08);"></div>
+        </div>
       </div>
     </div>
-    <div class="hour-grid" id="hourGrid"></div>
+    <div style="text-align:center;font-size:22px;font-weight:900;color:var(--brown);" id="timeDisplay">12:00</div>
   </div>
 
   <div class="section-title">備註</div>
@@ -145,7 +160,7 @@ const SUPABASE_URL = 'https://ufgpslpjtpzrtctrwdmj.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmZ3BzbHBqdHB6cnRjdHJ3ZG1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNzQyNjAsImV4cCI6MjA5Mjk1MDI2MH0.KK7noEUvdr4bPZEP8ihWXxlGGVK0hH-J5BHWjwX4nDg';
 const LIFF_ID = '2009926811-UQty4dKV';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-let lineUserId = '', bookingType = 'car', ampm = 'am', selHour = 9, selMin = '00';
+let lineUserId = '', bookingType = 'car', selHour = 12, selMin = '00';
 
 async function init() {
   const today = new Date().toISOString().split('T')[0];
@@ -177,29 +192,36 @@ async function init() {
     if (match) sel.value = match.id;
   }
 
-  buildHours();
+  buildScrollWheels();
 }
 
-function buildHours() {
-  const hours = ampm === 'am' ? [8,9,10,11,12] : [13,14,15,16,17,18,19,20];
-  if (!hours.includes(selHour)) { selHour = hours[0]; }
-  document.getElementById('hourDisplay').textContent = selHour;
-  document.getElementById('hourGrid').innerHTML = hours.map(h => `
-    <div class="hour-chip ${h===selHour?'active':''}" onclick="setHour(${h})">${h}點</div>
-  `).join('');
+function buildScrollWheels() {
+  // Hours 12-24
+  const hours = Array.from({length:13},(_,i)=>i+12);
+  const mins = ['00','30'];
+  const hEl = document.getElementById('hourItems');
+  const mEl = document.getElementById('minItems');
+  hEl.innerHTML = hours.map(h=>`<div style="height:40px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--brown);scroll-snap-align:start;">${h}</div>`).join('');
+  mEl.innerHTML = mins.map(m=>`<div style="height:40px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--brown);scroll-snap-align:start;">${m}</div>`).join('');
+  // Set initial position to 12
+  document.getElementById('hourScroll').scrollTop = 0;
+  document.getElementById('minScroll').scrollTop = 0;
+  updateTimeDisplay();
 }
 
-function setHour(h) { selHour = h; buildHours(); }
-function setAmPm(v) {
-  ampm = v;
-  document.getElementById('am-btn').className = 'ampm-btn' + (v==='am'?' active':'');
-  document.getElementById('pm-btn').className = 'ampm-btn' + (v==='pm'?' active':'');
-  buildHours();
+function updateHourFromScroll() {
+  const idx = Math.round(document.getElementById('hourScroll').scrollTop / 40);
+  selHour = 12 + Math.max(0, Math.min(12, idx));
+  updateTimeDisplay();
 }
-function setMin(m) {
-  selMin = m;
-  document.getElementById('min00').className = 'min-btn' + (m==='00'?' active':'');
-  document.getElementById('min30').className = 'min-btn' + (m==='30'?' active':'');
+function updateMinFromScroll() {
+  const idx = Math.round(document.getElementById('minScroll').scrollTop / 40);
+  selMin = idx === 0 ? '00' : '30';
+  updateTimeDisplay();
+}
+function updateTimeDisplay() {
+  const el = document.getElementById('timeDisplay');
+  if(el) el.textContent = `${selHour}:${selMin}`;
 }
 function setType(t) {
   bookingType = t;

@@ -112,7 +112,7 @@ const todayIdx = new Date().getDay();
 document.getElementById('hoursCard').innerHTML = days.map((d,i) => `
   <div class="hour-row ${i===todayIdx?'today':''}">
     <span class="day">${d}${i===todayIdx?' (今天)':''}</span>
-    <span class="time">10:00 – 19:00</span>
+    <span class="time">${i===0?'採預約制':'有客人就接 💕'}</span>
   </div>
 `).join('');
 
@@ -129,15 +129,12 @@ async function init() {
 async function sendMsg() {
   const text = document.getElementById('msgText').value.trim();
   if (!text) { alert('請輸入訊息內容'); return; }
-  if (liff.isInClient()) {
-    try {
-      await liff.sendMessages([{ type: 'text', text: `【${selectedType}】\n${text}` }]);
-      alert('訊息已傳送！');
-      document.getElementById('msgText').value = '';
-    } catch(e) { alert('傳送失敗，請直接點 LINE 訊息按鈕聯絡我們'); }
-  } else {
-    alert('請在 LINE 內開啟此頁面才能傳送訊息');
-  }
+  const fullMsg = encodeURIComponent(`【${selectedType}】\n${text}`);
+  // 開啟 LINE 官方帳號對話並帶入訊息
+  liff.openWindow({
+    url: `https://line.me/R/oaMessage/@704uyvki/?${fullMsg}`,
+    external: false
+  });
 }
 
 init().catch(console.error);
