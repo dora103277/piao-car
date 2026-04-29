@@ -3,99 +3,90 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>在庫車輛</title>
+<title>在庫車輛 | 驃宇重車</title>
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
-:root{--pink:#ff85a1;--pink-light:#fff0f3;--pink-soft:#ffd6e0;--pink-mid:#ffb3c6;--brown:#6b3f2a;--radius:18px;}
+:root{--pink:#ff85a1;--pink-light:#fff0f3;--pink-soft:#ffd6e0;--pink-mid:#ffb3c6;--brown:#6b3f2a;--dark:#1a1a1a;--red:#e53935;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Noto Sans TC',sans-serif;background:var(--pink-light);min-height:100vh;}
-.topbar{background:linear-gradient(135deg,#ffb3c6,#ff85a1);padding:20px 18px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(255,133,161,.3);}
-.topbar h1{color:#fff;font-size:18px;font-weight:900;}
-.topbar .icon{font-size:22px;}
-.content{padding:16px 14px 40px;}
-.loading{text-align:center;padding:60px 20px;color:#ccc;font-size:14px;}
-
-/* 搜尋欄 */
-.search-bar{background:#fff;border-radius:14px;border:2px solid var(--pink-soft);padding:12px 16px;display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.topbar{background:linear-gradient(135deg,var(--dark),#333);padding:16px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+.topbar img{width:36px;height:36px;border-radius:8px;object-fit:cover;}
+.topbar-info h1{color:#fff;font-size:17px;font-weight:700;}
+.topbar-info p{color:var(--red);font-size:10px;letter-spacing:1px;}
+.content{padding:14px 14px 50px;}
+.loading{text-align:center;padding:80px 20px;color:#ccc;font-size:14px;}
+.search-bar{background:#fff;border-radius:14px;border:2px solid var(--pink-soft);padding:11px 16px;display:flex;align-items:center;gap:10px;margin-bottom:14px;}
 .search-bar input{flex:1;border:none;outline:none;font-family:'Noto Sans TC',sans-serif;font-size:14px;color:var(--brown);}
-.search-bar span{font-size:18px;}
-
-/* 車輛卡 */
 .car-list{display:flex;flex-direction:column;gap:14px;}
-.car-card{background:#fff;border-radius:20px;border:2px solid var(--pink-soft);overflow:hidden;transition:transform .2s,box-shadow .2s;cursor:pointer;}
-.car-card:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(255,133,161,.2);}
-.car-img{background:linear-gradient(135deg,#ffd6e0,#ffb3c6);padding:24px;font-size:72px;text-align:center;position:relative;}
-.car-img img{width:100%;height:160px;object-fit:cover;}
+.car-card{background:#fff;border-radius:20px;border:2px solid var(--pink-soft);overflow:hidden;cursor:pointer;transition:transform .2s,box-shadow .2s;}
+.car-card:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(255,133,161,.2);}
+.car-img-wrap{background:linear-gradient(135deg,#ffd6e0,#ffb3c6);padding:24px;text-align:center;font-size:72px;position:relative;}
+.car-img-wrap img{width:100%;height:160px;object-fit:cover;}
 .status-badge{position:absolute;top:12px;right:12px;background:var(--pink);color:#fff;border-radius:10px;padding:3px 10px;font-size:11px;font-weight:700;}
-.status-badge.sold{background:#ccc;}
+.status-badge.sold{background:#bbb;}
 .car-info{padding:16px 18px 18px;}
-.car-name{font-size:16px;font-weight:900;color:var(--brown);}
-.car-sub{font-size:12px;color:#aaa;margin-top:3px;}
+.car-name{font-size:15px;font-weight:900;color:var(--brown);}
+.car-sub{font-size:11px;color:#aaa;margin-top:3px;}
 .car-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
 .tag{background:var(--pink-light);color:#c9667c;border-radius:8px;padding:3px 10px;font-size:11px;font-weight:600;}
-.car-price{font-size:22px;font-weight:900;color:var(--pink);margin-top:12px;}
-.car-price span{font-size:13px;color:#bbb;font-weight:400;} 
-.btn-book{display:block;width:100%;margin-top:12px;padding:12px;background:linear-gradient(135deg,var(--pink-mid),var(--pink));color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;font-family:'Noto Sans TC',sans-serif;cursor:pointer;transition:opacity .2s;}
-.btn-book:hover{opacity:.85;}
-
-/* 詳細資訊 overlay */
-.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:flex-end;}
+.car-price{font-size:22px;font-weight:900;color:var(--pink);margin-top:10px;}
+.boss-cost{background:#fff8e1;border-radius:10px;padding:10px 12px;margin-top:10px;font-size:12px;color:#856404;}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-end;}
 .overlay.show{display:flex;}
-.sheet{background:#fff;border-radius:24px 24px 0 0;padding:24px 20px 40px;width:100%;max-height:85vh;overflow-y:auto;animation:slideUp .3s ease;}
+.sheet{background:#fff;border-radius:24px 24px 0 0;padding:22px 20px 44px;width:100%;max-height:88vh;overflow-y:auto;animation:slideUp .3s ease;}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .sheet-handle{width:40px;height:4px;background:#eee;border-radius:2px;margin:0 auto 18px;}
-.sheet h2{font-size:18px;font-weight:900;color:var(--brown);margin-bottom:4px;}
-.sheet .sub{font-size:13px;color:#aaa;margin-bottom:16px;}
-.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.sheet-close{position:absolute;top:16px;right:20px;font-size:22px;cursor:pointer;color:#ccc;}
+.sheet h2{font-size:17px;font-weight:900;color:var(--brown);margin-bottom:4px;}
+.sheet-sub{font-size:12px;color:#aaa;margin-bottom:14px;}
+.sheet-price{font-size:26px;font-weight:900;color:var(--pink);margin-bottom:14px;}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
 .detail-item{background:var(--pink-light);border-radius:12px;padding:12px;}
 .detail-item .dk{font-size:11px;color:#aaa;}
 .detail-item .dv{font-size:14px;font-weight:700;color:var(--brown);margin-top:3px;}
-.sheet-price{font-size:26px;font-weight:900;color:var(--pink);margin-bottom:16px;}
-.sheet-desc{font-size:13px;color:#777;line-height:1.7;margin-bottom:20px;}
-.btn-primary{width:100%;padding:14px;background:linear-gradient(135deg,var(--pink-mid),var(--pink));color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:700;font-family:'Noto Sans TC',sans-serif;cursor:pointer;}
-.close-btn{position:absolute;top:16px;right:20px;font-size:22px;cursor:pointer;color:#ccc;}
+.sheet-desc{font-size:13px;color:#777;line-height:1.7;margin-bottom:18px;}
+.btn-book{width:100%;padding:14px;background:linear-gradient(135deg,var(--pink-mid),var(--pink));color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:700;font-family:'Noto Sans TC',sans-serif;cursor:pointer;}
 </style>
 </head>
 <body>
 <div class="topbar">
-  <span class="icon">🚗</span>
-  <h1>在庫車輛</h1>
+  <img src="https://dora103277.github.io/piao-car/logo.jpg" onerror="this.style.display='none'">
+  <div class="topbar-info"><h1>在庫車輛</h1><p>PIAO YU.</p></div>
 </div>
 <div class="content">
   <div class="search-bar">
     <span>🔍</span>
     <input type="text" id="search" placeholder="搜尋品牌、車款…" oninput="filterCars()">
   </div>
-  <div class="car-list" id="carList">
-    <div class="loading">載入中…</div>
-  </div>
+  <div class="car-list" id="carList"><div class="loading">載入中…</div></div>
 </div>
 
-<!-- 詳細資料 overlay -->
 <div class="overlay" id="overlay" onclick="closeSheet(event)">
-  <div class="sheet" id="sheet">
+  <div class="sheet" id="sheet" style="position:relative;">
     <div class="sheet-handle"></div>
-    <span class="close-btn" onclick="closeOverlay()">✕</span>
+    <span class="sheet-close" onclick="closeOverlay()">✕</span>
     <div id="sheetContent"></div>
   </div>
 </div>
 
 <script>
-const SUPABASE_URL = '請填入你的 Supabase URL';
-const SUPABASE_KEY = '請填入你的 Supabase anon key';
-const LIFF_ID      = '請填入此頁面的 LIFF ID';
-// 預約看車的 LIFF URL（讓用戶點擊後跳轉）
-const BOOKING_LIFF_URL = 'https://liff.line.me/請填入預約看車的LIFF_ID';
-
+const SUPABASE_URL = 'https://ufgpslpjtpzrtctrwdmj.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmZ3BzbHBqdHB6cnRjdHJ3ZG1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNzQyNjAsImV4cCI6MjA5Mjk1MDI2MH0.KK7noEUvdr4bPZEP8ihWXxlGGVK0hH-J5BHWjwX4nDg';
+const LIFF_ID = '2009926811-0DAVFlbx';
+const BOOKING_LIFF = 'https://liff.line.me/2009926811-UQty4dKV';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-let allCars = [];
+let allCars = [], userRole = 'customer';
 
 async function init() {
   await liff.init({ liffId: LIFF_ID });
-  const { data, error } = await sb.from('vehicles').select('*').order('created_at', { ascending: false });
-  if (error) { document.getElementById('carList').innerHTML = `<div class="loading">載入失敗</div>`; return; }
+  if (liff.isLoggedIn()) {
+    const profile = await liff.getProfile();
+    const { data: member } = await sb.from('members').select('role').eq('line_user_id', profile.userId).single();
+    if (member) userRole = member.role || 'customer';
+  }
+  const { data } = await sb.from('vehicles').select('*').order('created_at', { ascending: false });
   allCars = data || [];
   renderCars(allCars);
 }
@@ -110,37 +101,51 @@ function filterCars() {
 }
 
 function renderCars(cars) {
-  if (!cars.length) {
-    document.getElementById('carList').innerHTML = `<div class="loading">目前沒有符合的車輛</div>`;
-    return;
-  }
+  if (!cars.length) { document.getElementById('carList').innerHTML = `<div class="loading">目前沒有符合的車輛</div>`; return; }
   document.getElementById('carList').innerHTML = cars.map(c => `
     <div class="car-card" onclick="openDetail('${c.id}')">
-      <div class="car-img">
+      <div class="car-img-wrap">
         ${c.image_url ? `<img src="${c.image_url}" alt="${c.name}">` : '🚗'}
         <span class="status-badge ${c.status==='已售出'?'sold':''}">${c.status}</span>
       </div>
       <div class="car-info">
         <div class="car-name">${c.name}</div>
-        <div class="car-sub">${c.year||''} • ${c.color||''} • ${c.transmission||''}</div>
+        <div class="car-sub">${c.year||''}年 · ${c.color||''} · ${c.transmission||''}</div>
         <div class="car-tags">
           ${c.fuel_type?`<span class="tag">${c.fuel_type}</span>`:''}
           ${c.mileage?`<span class="tag">${(c.mileage/10000).toFixed(1)}萬公里</span>`:''}
-          ${c.brand?`<span class="tag">${c.brand}</span>`:''}
         </div>
-        <div class="car-price">NT$ ${(c.price||0).toLocaleString()} <span>元</span></div>
+        <div class="car-price">NT$ ${(c.price||0).toLocaleString()}</div>
+        ${userRole==='boss'&&c.cost?`<div class="boss-cost">📥 進價：NT$ ${c.cost.toLocaleString()}</div>`:''}
       </div>
     </div>
   `).join('');
 }
 
-function openDetail(id) {
+async function openDetail(id) {
   const c = allCars.find(x => x.id === id);
   if (!c) return;
+  let costHtml = '';
+  if (userRole === 'boss') {
+    const { data: cost } = await sb.from('vehicle_costs').select('*').eq('vehicle_id', id).single();
+    if (cost) {
+      const total = (cost.purchase_price||0)+(cost.maintenance_cost||0)+(cost.inspection_cost||0)+(cost.transfer_cost||0)+(cost.other_cost||0);
+      const profit = (c.price||0) - total;
+      costHtml = `<div class="boss-cost" style="margin-bottom:14px;">
+        📥 進車：NT$ ${(cost.purchase_price||0).toLocaleString()}<br>
+        🔧 整備：NT$ ${(cost.maintenance_cost||0).toLocaleString()}<br>
+        🔍 驗車：NT$ ${(cost.inspection_cost||0).toLocaleString()}<br>
+        📄 過戶：NT$ ${(cost.transfer_cost||0).toLocaleString()}<br>
+        📦 其他：NT$ ${(cost.other_cost||0).toLocaleString()}<br>
+        <strong>總成本：NT$ ${total.toLocaleString()} ｜ 毛利：NT$ ${profit.toLocaleString()}</strong>
+      </div>`;
+    }
+  }
   document.getElementById('sheetContent').innerHTML = `
     <h2>${c.name}</h2>
-    <div class="sub">${c.brand} ${c.model} • ${c.year}年</div>
+    <div class="sheet-sub">${c.brand||''} ${c.model||''} · ${c.year||''}年</div>
     <div class="sheet-price">NT$ ${(c.price||0).toLocaleString()} 元</div>
+    ${costHtml}
     <div class="detail-grid">
       <div class="detail-item"><div class="dk">里程數</div><div class="dv">${c.mileage?c.mileage.toLocaleString()+' km':'—'}</div></div>
       <div class="detail-item"><div class="dk">出廠年份</div><div class="dv">${c.year||'—'}年</div></div>
@@ -150,16 +155,14 @@ function openDetail(id) {
       <div class="detail-item"><div class="dk">狀態</div><div class="dv">${c.status||'—'}</div></div>
     </div>
     ${c.description?`<div class="sheet-desc">${c.description}</div>`:''}
-    <button class="btn-primary" onclick="goBook('${c.name}')">📅 預約看這台車</button>
+    ${c.status!=='已售出'?`<button class="btn-book" onclick="goBook('${c.name}')">📅 預約看這台車</button>`:''}
   `;
   document.getElementById('overlay').classList.add('show');
 }
 
 function goBook(name) {
-  // 帶車名參數跳轉到預約頁面
-  liff.openWindow({ url: BOOKING_LIFF_URL + '?vehicle=' + encodeURIComponent(name), external: false });
+  liff.openWindow({ url: BOOKING_LIFF + '?vehicle=' + encodeURIComponent(name), external: false });
 }
-
 function closeSheet(e) { if (e.target === document.getElementById('overlay')) closeOverlay(); }
 function closeOverlay() { document.getElementById('overlay').classList.remove('show'); }
 

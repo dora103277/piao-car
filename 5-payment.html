@@ -3,105 +3,109 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>尾款剩餘</title>
+<title>尾款剩餘 | 驃宇重車</title>
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
-:root{--pink:#ff85a1;--pink-light:#fff0f3;--pink-soft:#ffd6e0;--pink-mid:#ffb3c6;--brown:#6b3f2a;--gold:#f5c518;--radius:18px;}
+:root{--pink:#ff85a1;--pink-light:#fff0f3;--pink-soft:#ffd6e0;--pink-mid:#ffb3c6;--brown:#6b3f2a;--dark:#1a1a1a;--red:#e53935;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Noto Sans TC',sans-serif;background:var(--pink-light);min-height:100vh;}
-.topbar{background:linear-gradient(135deg,#ffb3c6,#ff85a1);padding:20px 18px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(255,133,161,.3);}
-.topbar h1{color:#fff;font-size:18px;font-weight:900;}
+.topbar{background:linear-gradient(135deg,var(--dark),#333);padding:16px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+.topbar img{width:36px;height:36px;border-radius:8px;object-fit:cover;}
+.topbar-info h1{color:#fff;font-size:17px;font-weight:700;}
+.topbar-info p{color:var(--red);font-size:10px;letter-spacing:1px;}
 .content{padding:18px 14px 50px;}
-.loading{text-align:center;padding:60px 20px;color:#ccc;font-size:14px;}
-
-/* 總覽卡 */
-.summary-card{background:linear-gradient(135deg,#ffb3c6,#ff85a1);border-radius:24px;padding:24px;margin-bottom:20px;box-shadow:0 8px 28px rgba(255,133,161,.3);position:relative;overflow:hidden;}
-.summary-card::before{content:'💰';font-size:90px;position:absolute;right:-10px;top:-15px;opacity:.15;}
+.loading{text-align:center;padding:80px 20px;color:#ccc;font-size:14px;}
+.lock-screen{text-align:center;padding:80px 20px;}
+.lock-icon{font-size:64px;margin-bottom:16px;}
+.lock-screen h3{font-size:16px;font-weight:700;color:#c9667c;margin-bottom:8px;}
+.lock-screen p{font-size:13px;color:#bbb;}
+.summary-card{background:linear-gradient(135deg,var(--pink-mid),var(--pink));border-radius:22px;padding:22px;margin-bottom:18px;box-shadow:0 8px 28px rgba(255,133,161,.35);position:relative;overflow:hidden;}
+.summary-card::before{content:'💰';font-size:90px;position:absolute;right:-10px;top:-15px;opacity:.12;}
 .summary-label{color:rgba(255,255,255,.85);font-size:13px;}
 .summary-amount{color:#fff;font-size:34px;font-weight:900;margin:6px 0;}
 .summary-sub{color:rgba(255,255,255,.8);font-size:12px;}
-
-/* 分期卡 */
-.installment-card{background:#fff;border-radius:20px;border:2px solid var(--pink-soft);margin-bottom:14px;overflow:hidden;}
-.inst-head{background:linear-gradient(135deg,var(--pink-light),#fff);padding:14px 18px;border-bottom:2px solid var(--pink-soft);}
-.inst-head .vehicle{font-size:15px;font-weight:900;color:var(--brown);}
-.inst-head .status{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;float:right;}
+.inst-card{background:#fff;border-radius:20px;border:2px solid var(--pink-soft);margin-bottom:14px;overflow:hidden;}
+.inst-head{background:linear-gradient(135deg,var(--pink-light),#fff);padding:14px 18px;border-bottom:2px solid var(--pink-soft);display:flex;justify-content:space-between;align-items:center;}
+.inst-vehicle{font-size:14px;font-weight:900;color:var(--brown);}
+.inst-status{font-size:11px;font-weight:700;padding:3px 10px;border-radius:16px;}
 .s-繳款中{background:#d1f7d4;color:#0a6624;}
-.s-已結清{background:#e8e8e8;color:#888;}
-
-/* 進度條 */
-.progress-section{padding:16px 18px;}
-.progress-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:8px;}
+.s-已結清{background:#eee;color:#888;}
+.inst-body{padding:16px 18px;}
+.customer-chips{margin-bottom:12px;}
+.customer-chips .label{font-size:11px;color:#aaa;margin-bottom:5px;}
+.chip{display:inline-flex;align-items:center;gap:4px;background:var(--pink-light);border-radius:8px;padding:4px 10px;font-size:11px;color:#c9667c;margin:2px 3px 0 0;}
+.progress-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:7px;}
 .progress-label .k{color:#aaa;}
 .progress-label .v{font-weight:700;color:var(--brown);}
-.progress-bar{background:var(--pink-soft);border-radius:10px;height:10px;overflow:hidden;}
-.progress-fill{height:100%;background:linear-gradient(90deg,var(--pink-mid),var(--pink));border-radius:10px;transition:width .5s ease;}
-
-/* 明細格 */
-.inst-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 18px;}
+.progress-bar{background:var(--pink-soft);border-radius:8px;height:10px;overflow:hidden;margin-bottom:14px;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--pink-mid),var(--pink));border-radius:8px;transition:width .5s ease;}
+.due-banner{background:linear-gradient(135deg,#fff8e1,#fff3cd);border:2px solid #ffd54f;border-radius:12px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.due-banner p{font-size:12px;color:#856404;}
+.due-banner strong{display:block;font-size:14px;}
+.inst-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .inst-item{background:var(--pink-light);border-radius:12px;padding:12px;}
 .inst-item .ik{font-size:11px;color:#aaa;}
-.inst-item .iv{font-size:15px;font-weight:900;color:var(--brown);margin-top:3px;}
-.inst-item.highlight .iv{color:var(--pink);}
-
-/* 下期提醒 */
-.due-banner{background:linear-gradient(135deg,#fff8e1,#fff3cd);border:2px solid #ffd54f;border-radius:14px;padding:14px 16px;margin:0 18px 18px;display:flex;align-items:center;gap:10px;}
-.due-banner .icon{font-size:22px;}
-.due-banner p{font-size:13px;color:#856404;}
-.due-banner strong{display:block;font-size:15px;}
-
-/* 空狀態 */
+.inst-item .iv{font-size:14px;font-weight:700;color:var(--brown);margin-top:3px;}
+.inst-item.hl .iv{color:var(--pink);}
 .empty{text-align:center;padding:60px 20px;}
-.empty .big{font-size:64px;margin-bottom:16px;}
-.empty h3{font-size:16px;font-weight:700;color:var(--brown);margin-bottom:8px;}
-.empty p{font-size:13px;color:#bbb;line-height:1.6;}
+.empty-icon{font-size:60px;margin-bottom:16px;}
+.empty h3{font-size:15px;font-weight:700;color:var(--brown);}
+.empty p{font-size:13px;color:#bbb;margin-top:8px;line-height:1.6;}
 </style>
 </head>
 <body>
 <div class="topbar">
-  <span style="font-size:22px">🐷</span>
-  <h1>尾款剩餘</h1>
+  <img src="https://dora103277.github.io/piao-car/logo.jpg" onerror="this.style.display='none'">
+  <div class="topbar-info"><h1>尾款剩餘</h1><p>PIAO YU.</p></div>
 </div>
 <div class="content" id="content">
   <div class="loading">載入中…</div>
 </div>
 
 <script>
-const SUPABASE_URL = '請填入你的 Supabase URL';
-const SUPABASE_KEY = '請填入你的 Supabase anon key';
-const LIFF_ID      = '請填入此頁面的 LIFF ID';
-
+const SUPABASE_URL = 'https://ufgpslpjtpzrtctrwdmj.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmZ3BzbHBqdHB6cnRjdHJ3ZG1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNzQyNjAsImV4cCI6MjA5Mjk1MDI2MH0.KK7noEUvdr4bPZEP8ihWXxlGGVK0hH-J5BHWjwX4nDg';
+const LIFF_ID = '2009926811-N1FdmKM5';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function init() {
   await liff.init({ liffId: LIFF_ID });
   if (!liff.isLoggedIn()) { liff.login(); return; }
   const profile = await liff.getProfile();
+  const lineId = profile.userId;
 
-  const { data, error } = await sb.from('installments')
-    .select('*')
-    .eq('line_user_id', profile.userId)
-    .order('created_at', { ascending: false });
+  const { data: member } = await sb.from('members').select('role').eq('line_user_id', lineId).single();
+  const role = member?.role || 'customer';
 
-  if (error) { document.getElementById('content').innerHTML = `<div class="loading">載入失敗</div>`; return; }
-  render(data || []);
-}
-
-function render(list) {
-  if (!list.length) {
+  if (role === 'staff') {
     document.getElementById('content').innerHTML = `
-      <div class="empty">
-        <div class="big">🐷</div>
-        <h3>目前沒有分期記錄</h3>
-        <p>購車後，店家會在此為您<br>建立分期付款資料</p>
+      <div class="lock-screen">
+        <div class="lock-icon">🔒</div>
+        <h3>無法查看尾款資料</h3>
+        <p>此功能僅限老闆與客人使用</p>
       </div>`;
     return;
   }
 
-  // 計算總剩餘
-  const totalRemaining = list.reduce((sum, i) => sum + (i.total_amount - i.paid_amount), 0);
+  let query = sb.from('installments').select('*').order('created_at', { ascending: false });
+  if (role === 'customer') query = query.eq('line_user_id', lineId);
+
+  const { data } = await query;
+  const list = data || [];
+
+  if (!list.length) {
+    document.getElementById('content').innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">🐷</div>
+        <h3>目前沒有分期記錄</h3>
+        <p>購車後，店家會在此為您建立分期付款資料</p>
+      </div>`;
+    return;
+  }
+
+  const totalRemaining = list.reduce((s, i) => s + (i.total_amount - i.paid_amount), 0);
 
   let html = `
     <div class="summary-card">
@@ -114,47 +118,41 @@ function render(list) {
   list.forEach(inst => {
     const remaining = inst.total_amount - inst.paid_amount;
     const pct = Math.round((inst.paid_amount / inst.total_amount) * 100);
-    const dueDate = inst.next_due_date
-      ? new Date(inst.next_due_date).toLocaleDateString('zh-TW')
-      : '—';
-    const daysLeft = inst.next_due_date
-      ? Math.ceil((new Date(inst.next_due_date) - new Date()) / 86400000)
-      : null;
+    const dueDate = inst.next_due_date ? new Date(inst.next_due_date).toLocaleDateString('zh-TW') : '—';
+    const daysLeft = inst.next_due_date ? Math.ceil((new Date(inst.next_due_date) - new Date()) / 86400000) : null;
+
+    const customerInfo = role === 'boss' ? `
+      <div class="customer-chips">
+        <div class="label">客人資料</div>
+        ${inst.customer_name ? `<span class="chip">👤 ${inst.customer_name}</span>` : ''}
+        ${inst.phone ? `<span class="chip">📞 ${inst.phone}</span>` : ''}
+        ${inst.line_id ? `<span class="chip">💬 ${inst.line_id}</span>` : ''}
+        ${inst.instagram ? `<span class="chip">📸 ${inst.instagram}</span>` : ''}
+      </div>` : '';
 
     html += `
-      <div class="installment-card">
+      <div class="inst-card">
         <div class="inst-head">
-          <span class="vehicle">🚗 ${inst.vehicle_name}</span>
-          <span class="status s-${inst.status}">${inst.status}</span>
+          <span class="inst-vehicle">🚗 ${inst.vehicle_name}</span>
+          <span class="inst-status s-${inst.status}">${inst.status}</span>
         </div>
-        <div class="progress-section">
+        <div class="inst-body">
+          ${customerInfo}
           <div class="progress-label">
             <span class="k">已繳 ${pct}%</span>
             <span class="v">NT$ ${inst.paid_amount.toLocaleString()} / ${inst.total_amount.toLocaleString()}</span>
           </div>
           <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
-        </div>
-        ${daysLeft !== null && inst.status === '繳款中' ? `
-        <div class="due-banner">
-          <span class="icon">${daysLeft <= 7 ? '⚠️' : '📅'}</span>
-          <p><strong>下期繳款日：${dueDate}</strong>${daysLeft >= 0 ? `還有 ${daysLeft} 天` : '已逾期，請盡快繳款'}</p>
-        </div>` : ''}
-        <div class="inst-grid">
-          <div class="inst-item highlight">
-            <div class="ik">剩餘金額</div>
-            <div class="iv">NT$ ${remaining.toLocaleString()}</div>
-          </div>
-          <div class="inst-item">
-            <div class="ik">每月金額</div>
-            <div class="iv">NT$ ${inst.monthly_payment.toLocaleString()}</div>
-          </div>
-          <div class="inst-item">
-            <div class="ik">開始日期</div>
-            <div class="iv">${inst.start_date ? new Date(inst.start_date).toLocaleDateString('zh-TW') : '—'}</div>
-          </div>
-          <div class="inst-item">
-            <div class="ik">結束日期</div>
-            <div class="iv">${inst.end_date ? new Date(inst.end_date).toLocaleDateString('zh-TW') : '—'}</div>
+          ${daysLeft !== null && inst.status === '繳款中' ? `
+          <div class="due-banner">
+            <span style="font-size:22px;">${daysLeft <= 7 ? '⚠️' : '📅'}</span>
+            <p><strong>下期繳款日：${dueDate}</strong>${daysLeft >= 0 ? `還有 ${daysLeft} 天` : '已逾期，請盡快繳款'}</p>
+          </div>` : ''}
+          <div class="inst-grid">
+            <div class="inst-item hl"><div class="ik">剩餘金額</div><div class="iv">NT$ ${remaining.toLocaleString()}</div></div>
+            <div class="inst-item"><div class="ik">每月金額</div><div class="iv">NT$ ${inst.monthly_payment.toLocaleString()}</div></div>
+            <div class="inst-item"><div class="ik">開始日期</div><div class="iv">${inst.start_date ? new Date(inst.start_date).toLocaleDateString('zh-TW') : '—'}</div></div>
+            <div class="inst-item"><div class="ik">結束日期</div><div class="iv">${inst.end_date ? new Date(inst.end_date).toLocaleDateString('zh-TW') : '—'}</div></div>
           </div>
         </div>
       </div>

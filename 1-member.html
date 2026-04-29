@@ -3,131 +3,112 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>會員中心</title>
+<title>會員中心 | 驃宇重車</title>
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
-:root{--pink:#ff85a1;--pink-light:#fff0f3;--pink-soft:#ffd6e0;--pink-mid:#ffb3c6;--brown:#6b3f2a;--gold:#f5c518;--radius:18px;}
+:root{--pink:#ff85a1;--pink-light:#fff0f3;--pink-soft:#ffd6e0;--pink-mid:#ffb3c6;--brown:#6b3f2a;--gold:#f5c518;--dark:#1a1a1a;--red:#e53935;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Noto Sans TC',sans-serif;background:var(--pink-light);min-height:100vh;}
-.topbar{background:linear-gradient(135deg,#ffb3c6,#ff85a1);padding:20px 18px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(255,133,161,.3);}
-.topbar h1{color:#fff;font-size:18px;font-weight:900;letter-spacing:1px;}
-.topbar .icon{font-size:22px;}
-.content{padding:20px 16px 40px;}
-
-/* 會員卡 */
-.member-card{background:linear-gradient(135deg,#ffb3c6 0%,#ff85a1 60%,#ff6b91 100%);border-radius:24px;padding:26px 22px;margin-bottom:20px;box-shadow:0 8px 30px rgba(255,133,161,.35);position:relative;overflow:hidden;}
-.member-card::before{content:'🌸';font-size:110px;position:absolute;right:-15px;top:-25px;opacity:.15;}
+.topbar{background:linear-gradient(135deg,var(--dark),#333);padding:16px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+.topbar img{width:36px;height:36px;border-radius:8px;object-fit:cover;}
+.topbar-info h1{color:#fff;font-size:17px;font-weight:700;}
+.topbar-info p{color:var(--red);font-size:10px;letter-spacing:1px;margin-top:1px;}
+.content{padding:18px 16px 50px;}
+.loading{text-align:center;padding:80px 20px;color:#ccc;font-size:14px;}
+.member-card{background:linear-gradient(135deg,var(--pink-mid),var(--pink));border-radius:22px;padding:22px;margin-bottom:18px;box-shadow:0 8px 28px rgba(255,133,161,.35);position:relative;overflow:hidden;}
+.member-card::before{content:'🌸';font-size:100px;position:absolute;right:-12px;top:-20px;opacity:.12;}
 .avatar-row{display:flex;align-items:center;gap:16px;}
-.avatar{width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;font-size:40px;box-shadow:0 4px 14px rgba(0,0,0,.12);}
-.member-name{color:#fff;font-size:20px;font-weight:900;}
-.member-phone{color:rgba(255,255,255,.85);font-size:13px;margin-top:4px;}
-.member-badge{display:inline-flex;align-items:center;gap:5px;background:var(--gold);color:#6b4700;border-radius:20px;padding:4px 14px;font-size:12px;font-weight:700;margin-top:10px;}
-
-/* 統計卡 */
-.stats-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
-.stat-card{background:#fff;border-radius:var(--radius);border:2px solid var(--pink-soft);padding:18px 16px;text-align:center;}
+.avatar{width:68px;height:68px;border-radius:50%;background:rgba(255,255,255,.95);display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.15);}
+.avatar img{width:100%;height:100%;object-fit:cover;}
+.member-name{color:#fff;font-size:19px;font-weight:900;}
+.member-phone{color:rgba(255,255,255,.85);font-size:12px;margin-top:3px;}
+.member-badge{display:inline-block;padding:3px 12px;border-radius:20px;font-size:11px;font-weight:700;margin-top:8px;}
+.badge-customer{background:var(--gold);color:#6b4700;}
+.badge-staff{background:#e8f4ff;color:#1456a0;}
+.badge-boss{background:#1a1a1a;color:#e53935;}
+.stats-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;}
+.stat-card{background:#fff;border-radius:16px;border:2px solid var(--pink-soft);padding:16px;text-align:center;}
 .stat-num{font-size:28px;font-weight:900;color:var(--pink);}
-.stat-label{font-size:12px;color:#999;margin-top:4px;}
-
-/* 資訊列 */
-.section-title{font-size:14px;font-weight:900;color:var(--brown);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.stat-label{font-size:11px;color:#999;margin-top:4px;}
+.section-title{font-size:13px;font-weight:900;color:var(--brown);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
 .section-title::after{content:'';flex:1;height:2px;background:linear-gradient(90deg,var(--pink-mid),transparent);border-radius:2px;}
-.info-list{display:flex;flex-direction:column;gap:10px;margin-bottom:20px;}
-.info-row{background:#fff;border-radius:14px;border:2px solid var(--pink-soft);padding:14px 18px;display:flex;justify-content:space-between;align-items:center;}
-.info-row .lbl{font-size:13px;color:#aaa;}
-.info-row .val{font-size:13px;font-weight:700;color:var(--brown);}
-
-/* 登出按鈕 */
-.btn-outline{width:100%;padding:14px;border-radius:var(--radius);border:2px solid var(--pink);background:#fff;color:var(--pink);font-size:15px;font-weight:700;font-family:'Noto Sans TC',sans-serif;cursor:pointer;transition:all .2s;}
-.btn-outline:hover{background:var(--pink);color:#fff;}
-
-/* loading */
-.loading{text-align:center;padding:60px 20px;color:#ccc;font-size:14px;}
+.info-list{background:#fff;border-radius:16px;border:2px solid var(--pink-soft);overflow:hidden;margin-bottom:18px;}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid #f8f0f2;}
+.info-row:last-child{border:none;}
+.info-row .k{font-size:12px;color:#aaa;}
+.info-row .v{font-size:13px;font-weight:700;color:var(--brown);}
+.btn-close{width:100%;padding:14px;border-radius:16px;border:2px solid var(--pink-soft);background:#fff;color:var(--pink);font-size:14px;font-weight:700;font-family:'Noto Sans TC',sans-serif;cursor:pointer;transition:all .2s;}
+.btn-close:hover{background:var(--pink);color:#fff;}
 </style>
 </head>
 <body>
 <div class="topbar">
-  <span class="icon">👤</span>
-  <h1>會員中心</h1>
+  <img src="https://dora103277.github.io/piao-car/logo.jpg" onerror="this.style.display='none'">
+  <div class="topbar-info"><h1>驃宇重車</h1><p>PIAO YU.</p></div>
 </div>
 <div class="content" id="content">
   <div class="loading">載入中…</div>
 </div>
 
 <script>
-// ══ 請填入你的資訊 ══
-const SUPABASE_URL = '請填入你的 Supabase URL';
-const SUPABASE_KEY = '請填入你的 Supabase anon key';
-const LIFF_ID      = '請填入此頁面的 LIFF ID';
-
+const SUPABASE_URL = 'https://ufgpslpjtpzrtctrwdmj.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmZ3BzbHBqdHB6cnRjdHJ3ZG1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNzQyNjAsImV4cCI6MjA5Mjk1MDI2MH0.KK7noEUvdr4bPZEP8ihWXxlGGVK0hH-J5BHWjwX4nDg';
+const LIFF_ID = '2009926811-e1vXaP7l';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function init() {
   await liff.init({ liffId: LIFF_ID });
   if (!liff.isLoggedIn()) { liff.login(); return; }
-
   const profile = await liff.getProfile();
-  const lineId  = profile.userId;
+  const lineId = profile.userId;
 
-  // 查詢或建立會員
   let { data: member } = await sb.from('members').select('*').eq('line_user_id', lineId).single();
   if (!member) {
     const { data: newM } = await sb.from('members').insert({
-      line_user_id: lineId,
-      name: profile.displayName,
+      line_user_id: lineId, name: profile.displayName, role: 'customer'
     }).select().single();
     member = newM;
   }
 
-  // 查詢預約筆數
   const { count: bookingCount } = await sb.from('bookings')
+    .select('*', { count: 'exact', head: true }).eq('line_user_id', lineId);
+
+  const { count: installCount } = await sb.from('installments')
     .select('*', { count: 'exact', head: true })
-    .eq('line_user_id', lineId);
+    .eq('line_user_id', lineId).eq('status', '繳款中');
 
-  render(profile, member, bookingCount || 0);
-}
-
-function render(profile, member, bookingCount) {
-  const joined = member.created_at
-    ? new Date(member.created_at).toLocaleDateString('zh-TW')
-    : '—';
+  const role = member.role || 'customer';
+  const badgeMap = { customer: ['badge-customer', '⭐ 一般會員'], staff: ['badge-staff', '👔 員工'], boss: ['badge-boss', '👑 老闆'] };
+  const [badgeClass, badgeText] = badgeMap[role] || badgeMap.customer;
+  const joined = member.created_at ? new Date(member.created_at).toLocaleDateString('zh-TW') : '—';
 
   document.getElementById('content').innerHTML = `
     <div class="member-card">
       <div class="avatar-row">
-        <div class="avatar">${profile.pictureUrl
-          ? `<img src="${profile.pictureUrl}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`
-          : '👤'}</div>
+        <div class="avatar">${profile.pictureUrl ? `<img src="${profile.pictureUrl}">` : '👤'}</div>
         <div>
           <div class="member-name">${member.name || profile.displayName}</div>
           <div class="member-phone">${member.phone || '尚未填寫電話'}</div>
-          <div class="member-badge">⭐ ${member.member_level || '一般會員'}</div>
+          <div class="member-badge ${badgeClass}">${badgeText}</div>
         </div>
       </div>
     </div>
-
     <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-num">${bookingCount}</div>
-        <div class="stat-label">累積預約次數</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num">0</div>
-        <div class="stat-label">尚未結清帳款</div>
-      </div>
+      <div class="stat-card"><div class="stat-num">${bookingCount || 0}</div><div class="stat-label">累積預約次數</div></div>
+      <div class="stat-card"><div class="stat-num">${installCount || 0}</div><div class="stat-label">進行中帳款</div></div>
     </div>
-
     <div class="section-title">基本資料</div>
     <div class="info-list">
-      <div class="info-row"><span class="lbl">姓名</span><span class="val">${member.name || profile.displayName}</span></div>
-      <div class="info-row"><span class="lbl">電話</span><span class="val">${member.phone || '—'}</span></div>
-      <div class="info-row"><span class="lbl">Email</span><span class="val">${member.email || '—'}</span></div>
-      <div class="info-row"><span class="lbl">加入日期</span><span class="val">${joined}</span></div>
+      <div class="info-row"><span class="k">姓名</span><span class="v">${member.name || profile.displayName}</span></div>
+      <div class="info-row"><span class="k">電話</span><span class="v">${member.phone || '—'}</span></div>
+      <div class="info-row"><span class="k">LINE ID</span><span class="v">${member.line_id || '—'}</span></div>
+      <div class="info-row"><span class="k">Instagram</span><span class="v">${member.instagram || '—'}</span></div>
+      <div class="info-row"><span class="k">加入日期</span><span class="v">${joined}</span></div>
+      ${role !== 'customer' ? `<div class="info-row"><span class="k">角色</span><span class="v">${badgeText}</span></div>` : ''}
     </div>
-
-    <button class="btn-outline" onclick="liff.closeWindow()">關閉視窗</button>
+    <button class="btn-close" onclick="liff.closeWindow()">關閉視窗</button>
   `;
 }
 
