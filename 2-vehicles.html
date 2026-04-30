@@ -201,10 +201,17 @@ async function init() {
     const p = await liff.getProfile();
     const { data: m } = await sb.from('members').select('role').eq('line_user_id', p.userId).single();
     if (m) userRole = m.role || 'customer';
-    // debug
-    console.log('userId:', p.userId, 'role:', userRole);
-    document.title = 'role:' + userRole + ' id:' + p.userId.slice(-6);
-  } catch (e) { console.log('LIFF:', e.message); }
+    // 顯示 debug 資訊
+    const dbg = document.createElement('div');
+    dbg.style.cssText = 'background:#333;color:#fff;padding:8px 12px;font-size:11px;text-align:center;';
+    dbg.textContent = 'ID末6碼:' + p.userId.slice(-6) + ' 角色:' + userRole;
+    document.body.insertBefore(dbg, document.body.firstChild);
+  } catch (e) {
+    const dbg = document.createElement('div');
+    dbg.style.cssText = 'background:red;color:#fff;padding:8px 12px;font-size:11px;text-align:center;';
+    dbg.textContent = 'LIFF錯誤:' + e.message;
+    document.body.insertBefore(dbg, document.body.firstChild);
+  }
 
   const { data } = await sb.from('vehicles').select('*').order('entry_date', { ascending: false });
   allCars = data || [];
