@@ -8,68 +8,89 @@
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
-:root{--pk:#ff85a1;--pl:#fff0f3;--ps:#ffd6e0;--pm:#ffb3c6;--br:#6b3f2a;--dk:#1a1a1a;--rd:#e53935;}
+:root{--pk:#ff85a1;--pl:#fff0f3;--ps:#ffd6e0;--pm:#ffb3c6;--br:#6b3f2a;--rd:#e53935;--gn:#0a6624;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Noto Sans TC',sans-serif;background:var(--pl);min-height:100vh;}
 .topbar{background:linear-gradient(135deg,#1a1a1a,#333);padding:14px 16px;display:flex;align-items:center;gap:10px;}
 .topbar img{width:32px;height:32px;border-radius:6px;object-fit:cover;}
 .topbar h1{color:#fff;font-size:16px;font-weight:700;}
 .topbar p{color:var(--rd);font-size:9px;letter-spacing:1px;}
-.content{padding:16px 14px 60px;}
+.topbar-right{margin-left:auto;}
+.topbar-right button{background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:6px 10px;color:#fff;font-size:16px;cursor:pointer;}
+.content{padding:14px 14px 60px;}
 .st{font-size:12px;font-weight:900;color:var(--br);margin:14px 0 8px;display:flex;align-items:center;gap:6px;}
 .st::after{content:'';flex:1;height:2px;background:linear-gradient(90deg,var(--pm),transparent);border-radius:2px;}
-.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px;}
+/* Type buttons */
+.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px;}
 .tb2{background:#fff;border:2px solid var(--ps);border-radius:14px;padding:14px 10px;text-align:center;cursor:pointer;transition:all .2s;}
 .tb2.on{border-color:var(--pk);background:var(--pl);}
 .tb2 .ti{font-size:26px;margin-bottom:5px;}
 .tb2 .tl{font-size:13px;font-weight:700;color:var(--br);}
 .tb2.on .tl{color:var(--pk);}
-.warn{background:#fff3cd;border:1.5px solid #ffd54f;border-radius:10px;padding:10px 12px;font-size:11px;color:#856404;margin-bottom:12px;display:none;}
-.warn.show{display:flex;gap:6px;}
-.fg{margin-bottom:11px;}
+.warn{background:#fff3cd;border:1.5px solid #ffd54f;border-radius:10px;padding:10px 12px;font-size:11px;color:#856404;margin-bottom:10px;display:none;}
+.warn.on{display:flex;gap:6px;}
+/* Vehicle photo picker */
+.v-picker{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;margin-bottom:4px;}
+.v-picker::-webkit-scrollbar{display:none;}
+.v-card{flex-shrink:0;width:120px;border-radius:12px;border:2px solid var(--ps);overflow:hidden;cursor:pointer;transition:all .2s;background:#fff;}
+.v-card.on{border-color:var(--pk);box-shadow:0 0 0 2px var(--pm);}
+.v-card img{width:120px;height:80px;object-fit:cover;background:#f0f0f0;}
+.v-card .v-no-photo{width:120px;height:80px;display:flex;align-items:center;justify-content:center;font-size:30px;background:#f9f9f9;}
+.v-card .v-name{padding:5px 6px;font-size:10px;font-weight:700;color:var(--br);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.v-card .v-price{padding:0 6px 5px;font-size:10px;color:var(--pk);font-weight:700;}
+.v-none{flex-shrink:0;width:100px;border-radius:12px;border:2px dashed var(--ps);background:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px;}
+.v-none.on{border-color:var(--pk);}
+.v-none span{font-size:22px;}
+.v-none p{font-size:10px;color:#aaa;font-weight:700;}
+/* Form */
+.fg{margin-bottom:10px;}
 .fg label{display:block;font-size:11px;font-weight:700;color:var(--br);margin-bottom:4px;}
 .fg label .req{color:var(--rd);margin-left:2px;}
-.fg input,.fg select,.fg textarea{width:100%;padding:11px 13px;border-radius:11px;border:2px solid var(--ps);background:#fff;font-family:'Noto Sans TC',sans-serif;font-size:14px;color:var(--br);outline:none;transition:border-color .2s;}
-.fg input:focus,.fg select:focus{border-color:var(--pk);}
+.fg input,.fg textarea{width:100%;padding:11px 13px;border-radius:11px;border:2px solid var(--ps);background:#fff;font-family:'Noto Sans TC',sans-serif;font-size:14px;color:var(--br);outline:none;transition:border-color .2s;}
+.fg input:focus{border-color:var(--pk);}
 .fg textarea{resize:vertical;min-height:70px;}
-/* 聯絡方式擇一 */
-.contact-box{background:#fff;border-radius:12px;border:2px solid var(--ps);overflow:hidden;margin-bottom:4px;}
-.contact-tabs{display:flex;}
-.ctab{flex:1;padding:10px;text-align:center;font-size:12px;font-weight:700;cursor:pointer;color:#aaa;background:#f9f9f9;transition:all .2s;}
-.ctab.on{color:var(--pk);background:var(--pl);}
-.ctab-body{padding:12px;}
-/* 時間滾輪 */
+/* Contact tabs */
+.ctabs{display:flex;background:var(--ps);border-radius:11px;padding:3px;margin-bottom:8px;}
+.ctab{flex:1;padding:9px;text-align:center;font-size:12px;font-weight:700;border-radius:9px;cursor:pointer;color:#c9667c;transition:all .2s;}
+.ctab.on{background:var(--pk);color:#fff;}
+/* Time wheel */
 .time-box{background:#fff;border-radius:14px;border:2px solid var(--ps);padding:14px;}
-.scroll-wrap{display:flex;align-items:center;justify-content:center;gap:10px;}
-.scroll-col{text-align:center;}
-.scroll-col .lbl{font-size:10px;color:#aaa;margin-bottom:4px;}
-.scroll-outer{height:120px;overflow:hidden;position:relative;width:70px;}
-.scroll-inner{overflow-y:scroll;height:120px;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;}
-.scroll-item{height:40px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--br);scroll-snap-align:start;}
-.scroll-line{position:absolute;top:40px;left:0;right:0;height:40px;border-top:2px solid var(--pk);border-bottom:2px solid var(--pk);pointer-events:none;border-radius:8px;background:rgba(255,133,161,.08);}
-.time-display{text-align:center;font-size:22px;font-weight:900;color:var(--br);margin-top:10px;}
+.wheel-wrap{display:flex;align-items:center;justify-content:center;gap:10px;}
+.wheel-col{text-align:center;}
+.wheel-col .lbl{font-size:10px;color:#aaa;margin-bottom:4px;}
+.wheel-outer{height:120px;overflow:hidden;position:relative;width:70px;}
+.wheel-inner{overflow-y:scroll;height:120px;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;}
+.wheel-item{height:40px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--br);scroll-snap-align:start;}
+.wheel-line{position:absolute;top:40px;left:0;right:0;height:40px;border-top:2px solid var(--pk);border-bottom:2px solid var(--pk);pointer-events:none;border-radius:8px;background:rgba(255,133,161,.08);}
 .colon{font-size:28px;font-weight:900;color:#ccc;}
-/* 按鈕 */
-.btn-submit{width:100%;padding:15px;background:linear-gradient(135deg,var(--pm),var(--pk));color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:900;font-family:'Noto Sans TC',sans-serif;cursor:pointer;margin-top:20px;box-shadow:0 6px 20px rgba(255,133,161,.4);}
+.time-disp{text-align:center;font-size:22px;font-weight:900;color:var(--br);margin-top:10px;}
+/* Submit */
+.btn-submit{width:100%;padding:15px;background:linear-gradient(135deg,var(--pm),var(--pk));color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:900;font-family:'Noto Sans TC',sans-serif;cursor:pointer;margin-top:18px;box-shadow:0 6px 20px rgba(255,133,161,.4);}
 .btn-submit:disabled{opacity:.5;}
-/* 成功畫面 */
+.date-warn{font-size:11px;color:var(--rd);margin-top:4px;display:none;}
+/* Success */
 .success{display:none;text-align:center;padding:50px 20px;}
-.success.show{display:block;}
-.success-icon{font-size:70px;margin-bottom:16px;}
+.success.on{display:block;}
+.success .ico{font-size:70px;margin-bottom:14px;}
 .success h2{font-size:20px;font-weight:900;color:var(--br);margin-bottom:8px;}
 .success p{font-size:12px;color:#999;line-height:1.7;}
-.sc{background:#fff;border-radius:14px;border:2px solid var(--ps);padding:16px;margin:16px 0;text-align:left;}
+.sc{background:#fff;border-radius:14px;border:2px solid var(--ps);padding:14px;margin:14px 0;text-align:left;}
 .sr{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f5f5f5;font-size:13px;}
 .sr:last-child{border:none;}
-.sr .k{color:#aaa;} .sr .v{font-weight:700;color:var(--br);}
+.sr .k{color:#aaa;}.sr .v{font-weight:700;color:var(--br);}
 .btn-close{width:100%;padding:13px;background:#fff;border:2px solid var(--ps);border-radius:12px;font-size:13px;font-weight:700;color:var(--pk);font-family:'Noto Sans TC',sans-serif;cursor:pointer;}
-.date-warn{font-size:11px;color:var(--rd);margin-top:4px;display:none;}
+/* Theme overlay */
+.th-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;align-items:flex-end;}
+.th-ov.on{display:flex;}
+.th-sh{background:#fff;border-radius:22px 22px 0 0;padding:20px 16px 44px;width:100%;animation:su .3s ease;}
+@keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
 </style>
 </head>
 <body>
 <div class="topbar">
   <img src="https://dora103277.github.io/piao-car/logo.jpg" onerror="this.style.display='none'">
   <div><h1>預約</h1><p>PIAO YU.</p></div>
+  <div class="topbar-right"><button onclick="document.getElementById('thOv').classList.add('on')">🎨</button></div>
 </div>
 
 <div id="formArea" class="content">
@@ -84,35 +105,33 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--pl);min-height:100vh
   </div>
   <div class="warn" id="maint-warn">⚠️ 保養假日（週六/日）需提前兩天以上預約</div>
 
-  <div class="st" id="vehicle-label">想看的重機</div>
-  <div class="fg" id="vehicle-field">
-    <label>車款 <span style="font-size:10px;color:#aaa;">（選填）</span></label>
-    <select id="vehicleSel"><option value="">— 請選擇或略過 —</option></select>
+  <!-- 看重機：照片選車款 -->
+  <div id="bike-section">
+    <div class="st">選擇想看的重機 <span style="font-size:10px;color:#aaa;font-weight:400;">（可略過）</span></div>
+    <div class="v-picker" id="vPicker">
+      <div class="v-none on" id="v-none" onclick="selV(null)"><span>🏍️</span><p>未指定</p></div>
+    </div>
   </div>
-  <div class="fg" id="maint-vehicle-field" style="display:none;">
-    <label>保養車輛 <span style="font-size:10px;color:#aaa;">（自填）</span></label>
-    <input type="text" id="maintVehicle" placeholder="例：HONDA CBR600RR">
+
+  <!-- 保養：自填車款 -->
+  <div id="maint-section" style="display:none;">
+    <div class="st">保養車輛</div>
+    <div class="fg">
+      <input type="text" id="maintVehicle" placeholder="例：HONDA CBR600RR">
+    </div>
   </div>
 
   <div class="st">個人資料</div>
   <div class="fg"><label>姓名<span class="req">*</span></label><input type="text" id="custName" placeholder="請輸入您的姓名"></div>
-  <div class="fg"><label>聯絡電話<span class="req">*</span></label><input type="tel" id="custPhone" placeholder="09xxxxxxxx"></div>
+  <div class="fg"><label>電話<span class="req">*</span></label><input type="tel" id="custPhone" placeholder="09xxxxxxxx"></div>
 
   <div class="st">聯絡方式（擇一必填）</div>
-  <div class="contact-box">
-    <div class="contact-tabs">
-      <div class="ctab on" id="ctab-line" onclick="setContact('line')">💬 LINE ID</div>
-      <div class="ctab" id="ctab-ig" onclick="setContact('ig')">📸 Instagram</div>
-    </div>
-    <div class="ctab-body">
-      <div id="line-field" class="fg" style="margin:0;">
-        <input type="text" id="lineId" placeholder="請填入 LINE ID（必填其一）">
-      </div>
-      <div id="ig-field" class="fg" style="margin:0;display:none;">
-        <input type="text" id="igId" placeholder="請填入 Instagram 帳號（必填其一）">
-      </div>
-    </div>
+  <div class="ctabs">
+    <div class="ctab on" id="ctab-line" onclick="setContact('line')">💬 LINE ID</div>
+    <div class="ctab" id="ctab-ig" onclick="setContact('ig')">📸 Instagram</div>
   </div>
+  <div class="fg" id="line-field"><input type="text" id="lineId" placeholder="請填入 LINE ID"></div>
+  <div class="fg" id="ig-field" style="display:none;"><input type="text" id="igId" placeholder="請填入 Instagram 帳號"></div>
 
   <div class="st">預約日期</div>
   <div class="fg">
@@ -123,32 +142,32 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--pl);min-height:100vh
 
   <div class="st">預約時間</div>
   <div class="time-box">
-    <div class="scroll-wrap">
-      <div class="scroll-col">
+    <div class="wheel-wrap">
+      <div class="wheel-col">
         <div class="lbl">小時</div>
-        <div class="scroll-outer">
-          <div class="scroll-inner" id="hourScroll" onscroll="updateHour()">
+        <div class="wheel-outer">
+          <div class="wheel-inner" id="hScroll" onscroll="updateH()">
             <div style="height:40px;"></div>
-            <div id="hourItems"></div>
+            <div id="hItems"></div>
             <div style="height:40px;"></div>
           </div>
-          <div class="scroll-line"></div>
+          <div class="wheel-line"></div>
         </div>
       </div>
       <div class="colon">:</div>
-      <div class="scroll-col">
+      <div class="wheel-col">
         <div class="lbl">分鐘</div>
-        <div class="scroll-outer">
-          <div class="scroll-inner" id="minScroll" onscroll="updateMin()">
+        <div class="wheel-outer">
+          <div class="wheel-inner" id="mScroll" onscroll="updateM()">
             <div style="height:40px;"></div>
-            <div id="minItems"></div>
+            <div id="mItems"></div>
             <div style="height:40px;"></div>
           </div>
-          <div class="scroll-line"></div>
+          <div class="wheel-line"></div>
         </div>
       </div>
     </div>
-    <div class="time-display" id="timeDisplay">00:00</div>
+    <div class="time-disp" id="timeDisp">00:00</div>
   </div>
 
   <div class="st">備註</div>
@@ -158,153 +177,206 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--pl);min-height:100vh
 </div>
 
 <div class="success" id="successScreen">
-  <div class="success-icon">🎉</div>
+  <div class="ico">🎉</div>
   <h2>預約成功！</h2>
   <p>我們會盡快與您確認預約<br>請保持電話暢通 💕</p>
   <div class="sc" id="successCard"></div>
   <button class="btn-close" onclick="liff.closeWindow()">關閉視窗</button>
 </div>
 
+<!-- Theme overlay -->
+<div class="th-ov" id="thOv" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="th-sh">
+    <div style="width:36px;height:4px;background:#eee;border-radius:2px;margin:0 auto 16px;"></div>
+    <h2 style="font-size:16px;font-weight:900;color:var(--br);margin-bottom:14px;">🎨 選擇主題色</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div onclick="setTheme('pink')" style="background:linear-gradient(135deg,#ffb3c6,#ff85a1);border-radius:14px;padding:18px;text-align:center;cursor:pointer;"><div style="font-size:22px;margin-bottom:5px;">🌸</div><div style="color:#fff;font-weight:700;font-size:12px;">粉紅（預設）</div></div>
+      <div onclick="setTheme('blue')" style="background:linear-gradient(135deg,#8ab8e8,#5b9bd5);border-radius:14px;padding:18px;text-align:center;cursor:pointer;"><div style="font-size:22px;margin-bottom:5px;">💙</div><div style="color:#fff;font-weight:700;font-size:12px;">淺藍</div></div>
+      <div onclick="setTheme('dark')" style="background:linear-gradient(135deg,#2d2d3e,#1e1e2e);border-radius:14px;padding:18px;text-align:center;cursor:pointer;border:2px solid #ff85a1;"><div style="font-size:22px;margin-bottom:5px;">🌙</div><div style="color:#ff85a1;font-weight:700;font-size:12px;">深色+粉</div></div>
+      <div onclick="setTheme('green')" style="background:linear-gradient(135deg,#7ecba6,#4caf82);border-radius:14px;padding:18px;text-align:center;cursor:pointer;"><div style="font-size:22px;margin-bottom:5px;">🌿</div><div style="color:#fff;font-weight:700;font-size:12px;">清新綠</div></div>
+    </div>
+  </div>
+</div>
+
 <script>
-const SU='https://ufgpslpjtpzrtctrwdmj.supabase.co';
-const SK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmZ3BzbHBqdHB6cnRjdHJ3ZG1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNzQyNjAsImV4cCI6MjA5Mjk1MDI2MH0.KK7noEUvdr4bPZEP8ihWXxlGGVK0hH-J5BHWjwX4nDg';
-const LIFF_ID='2009926811-UQty4dKV';
-const sb=supabase.createClient(SU,SK);
-let uid='',bType='bike',selH=0,selM='00',contactType='line';
+const SU = 'https://ufgpslpjtpzrtctrwdmj.supabase.co';
+const SK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmZ3BzbHBqdHB6cnRjdHJ3ZG1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNzQyNjAsImV4cCI6MjA5Mjk1MDI2MH0.KK7noEUvdr4bPZEP8ihWXxlGGVK0hH-J5BHWjwX4nDg';
+const LIFF_ID = '2009926811-UQty4dKV';
+const sb = supabase.createClient(SU, SK);
 
-async function init(){
-  document.getElementById('bookDate').min=new Date().toISOString().split('T')[0];
+let uid = '', bType = 'bike', selH = 0, selM = '00', contactType = 'line';
+let selVid = null, selVname = '', allVehicles = [];
+
+function setTheme(name) {
+  const themes = {
+    pink: { pk: '#ff85a1', pl: '#fff0f3', ps: '#ffd6e0', pm: '#ffb3c6' },
+    blue: { pk: '#5b9bd5', pl: '#eef5ff', ps: '#b8d4f0', pm: '#8ab8e8' },
+    dark: { pk: '#ff85a1', pl: '#1e1e2e', ps: '#2d2d3e', pm: '#ff6b8e' },
+    green: { pk: '#4caf82', pl: '#edfaf4', ps: '#b2e8d0', pm: '#7ecba6' },
+  };
+  const t = themes[name]; if (!t) return;
+  const r = document.documentElement.style;
+  r.setProperty('--pk', t.pk); r.setProperty('--pl', t.pl);
+  r.setProperty('--ps', t.ps); r.setProperty('--pm', t.pm);
+  document.getElementById('thOv').classList.remove('on');
+}
+
+async function init() {
+  document.getElementById('bookDate').min = new Date().toISOString().split('T')[0];
   buildWheels();
-  try{
-    await liff.init({liffId:LIFF_ID});
-    if(!liff.isLoggedIn()){liff.login();return;}
-    const p=await liff.getProfile();uid=p.userId;
-    const{data:m}=await sb.from('members').select('name,phone,line_id').eq('line_user_id',uid).single();
-    if(m){
-      if(m.name)document.getElementById('custName').value=m.name;
-      if(m.phone)document.getElementById('custPhone').value=m.phone;
-      if(m.line_id)document.getElementById('lineId').value=m.line_id;
-    }
-  }catch(e){console.log('LIFF',e);}
 
-  // 載入在庫車輛
-  const{data:v}=await sb.from('vehicles').select('id,name').eq('status','在庫');
-  const sel=document.getElementById('vehicleSel');
-  (v||[]).forEach(x=>{const o=document.createElement('option');o.value=x.id;o.textContent=x.name;sel.appendChild(o);});
+  try {
+    await liff.init({ liffId: LIFF_ID });
+    if (!liff.isLoggedIn()) { liff.login(); return; }
+    const p = await liff.getProfile();
+    uid = p.userId;
+    const { data: m } = await sb.from('members').select('name,phone,line_id').eq('line_user_id', uid).single();
+    if (m) {
+      if (m.name) document.getElementById('custName').value = m.name;
+      if (m.phone) document.getElementById('custPhone').value = m.phone;
+      if (m.line_id) document.getElementById('lineId').value = m.line_id;
+    }
+  } catch (e) { console.log('LIFF:', e.message); }
+
+  // 載入在庫車輛（含照片）
+  const { data: v } = await sb.from('vehicles').select('id,name,price,photos').eq('status', '在庫');
+  allVehicles = v || [];
+  buildVPicker();
 
   // 從網址帶入車款
-  const params=new URLSearchParams(window.location.search);
-  const vn=params.get('vehicle');
-  if(vn){const match=(v||[]).find(x=>x.name===vn);if(match)sel.value=match.id;}
+  const params = new URLSearchParams(window.location.search);
+  const vname = params.get('vehicle');
+  if (vname) {
+    const match = allVehicles.find(x => x.name === vname);
+    if (match) selV(match.id);
+  }
 }
 
-function buildWheels(){
-  const hours=Array.from({length:24},(_,i)=>i); // 0-23
-  const mins=['00','30'];
-  document.getElementById('hourItems').innerHTML=hours.map(h=>`<div class="scroll-item">${String(h).padStart(2,'0')}</div>`).join('');
-  document.getElementById('minItems').innerHTML=mins.map(m=>`<div class="scroll-item">${m}</div>`).join('');
-  document.getElementById('hourScroll').scrollTop=0;
-  document.getElementById('minScroll').scrollTop=0;
-  updateDisplay();
+function buildVPicker() {
+  const picker = document.getElementById('vPicker');
+  const noneBtn = document.getElementById('v-none');
+  // 清除舊的車卡（保留未指定）
+  while (picker.children.length > 1) picker.removeChild(picker.lastChild);
+
+  allVehicles.forEach(v => {
+    const photos = v.photos || [];
+    const card = document.createElement('div');
+    card.className = 'v-card';
+    card.id = 'vcard-' + v.id;
+    card.onclick = () => selV(v.id);
+    card.innerHTML = (photos.length > 0
+      ? '<img src="' + photos[0] + '" loading="lazy">'
+      : '<div class="v-no-photo">🏍️</div>') +
+      '<div class="v-name">' + v.name + '</div>' +
+      '<div class="v-price">' + (v.price ? 'NT$ ' + (v.price / 10000).toFixed(1) + '萬' : '—') + '</div>';
+    picker.appendChild(card);
+  });
 }
 
-function updateHour(){
-  const idx=Math.round(document.getElementById('hourScroll').scrollTop/40);
-  selH=Math.max(0,Math.min(23,idx));updateDisplay();
-}
-function updateMin(){
-  const idx=Math.round(document.getElementById('minScroll').scrollTop/40);
-  selM=idx===0?'00':'30';updateDisplay();
-}
-function updateDisplay(){
-  const el=document.getElementById('timeDisplay');
-  if(el)el.textContent=`${String(selH).padStart(2,'0')}:${selM}`;
+function selV(id) {
+  selVid = id;
+  // 重置所有選中狀態
+  document.getElementById('v-none').className = 'v-none' + (id === null ? ' on' : '');
+  allVehicles.forEach(v => {
+    const card = document.getElementById('vcard-' + v.id);
+    if (card) card.className = 'v-card' + (v.id === id ? ' on' : '');
+  });
+  if (id) {
+    const v = allVehicles.find(x => x.id === id);
+    selVname = v ? v.name : '';
+    // 自動滾動到選中的卡片
+    const card = document.getElementById('vcard-' + id);
+    if (card) card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  } else {
+    selVname = '';
+  }
 }
 
-function setType(t){
-  bType=t;
-  document.getElementById('t-bike').className='tb2'+(t==='bike'?' on':'');
-  document.getElementById('t-maint').className='tb2'+(t==='maint'?' on':'');
-  document.getElementById('maint-warn').className='warn'+(t==='maint'?' show':'');
-  document.getElementById('vehicle-field').style.display=t==='bike'?'block':'none';
-  document.getElementById('maint-vehicle-field').style.display=t==='maint'?'block':'none';
-  document.getElementById('vehicle-label').textContent=t==='bike'?'想看的重機':'保養車輛';
+function buildWheels() {
+  const hours = Array.from({ length: 24 }, (_, i) => i);
+  const mins = ['00', '30'];
+  document.getElementById('hItems').innerHTML = hours.map(h => '<div class="wheel-item">' + String(h).padStart(2, '0') + '</div>').join('');
+  document.getElementById('mItems').innerHTML = mins.map(m => '<div class="wheel-item">' + m + '</div>').join('');
+  document.getElementById('hScroll').scrollTop = 0;
+  document.getElementById('mScroll').scrollTop = 0;
+  updateDisp();
+}
+
+function updateH() { selH = Math.max(0, Math.min(23, Math.round(document.getElementById('hScroll').scrollTop / 40))); updateDisp(); }
+function updateM() { selM = Math.round(document.getElementById('mScroll').scrollTop / 40) === 0 ? '00' : '30'; updateDisp(); }
+function updateDisp() { const el = document.getElementById('timeDisp'); if (el) el.textContent = String(selH).padStart(2, '0') + ':' + selM; }
+
+function setType(t) {
+  bType = t;
+  document.getElementById('t-bike').className = 'tb2' + (t === 'bike' ? ' on' : '');
+  document.getElementById('t-maint').className = 'tb2' + (t === 'maint' ? ' on' : '');
+  document.getElementById('maint-warn').className = 'warn' + (t === 'maint' ? ' on' : '');
+  document.getElementById('bike-section').style.display = t === 'bike' ? 'block' : 'none';
+  document.getElementById('maint-section').style.display = t === 'maint' ? 'block' : 'none';
   checkDate();
 }
 
-function setContact(t){
-  contactType=t;
-  document.getElementById('ctab-line').className='ctab'+(t==='line'?' on':'');
-  document.getElementById('ctab-ig').className='ctab'+(t==='ig'?' on':'');
-  document.getElementById('line-field').style.display=t==='line'?'block':'none';
-  document.getElementById('ig-field').style.display=t==='ig'?'block':'none';
+function setContact(t) {
+  contactType = t;
+  document.getElementById('ctab-line').className = 'ctab' + (t === 'line' ? ' on' : '');
+  document.getElementById('ctab-ig').className = 'ctab' + (t === 'ig' ? ' on' : '');
+  document.getElementById('line-field').style.display = t === 'line' ? 'block' : 'none';
+  document.getElementById('ig-field').style.display = t === 'ig' ? 'block' : 'none';
 }
 
-function checkDate(){
-  const d=document.getElementById('bookDate').value;
-  const warn=document.getElementById('dateWarn');
-  if(!d||bType!=='maint'){warn.style.display='none';return;}
-  const day=new Date(d).getDay();
-  const isWknd=day===0||day===6;
-  const today=new Date();today.setHours(0,0,0,0);
-  const twoDay=new Date(today);twoDay.setDate(twoDay.getDate()+2);
-  warn.style.display=(isWknd&&new Date(d)<twoDay)?'block':'none';
+function checkDate() {
+  const d = document.getElementById('bookDate').value;
+  const warn = document.getElementById('dateWarn');
+  if (!d || bType !== 'maint') { warn.style.display = 'none'; return; }
+  const day = new Date(d).getDay();
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const twoDay = new Date(today); twoDay.setDate(twoDay.getDate() + 2);
+  warn.style.display = ((day === 0 || day === 6) && new Date(d) < twoDay) ? 'block' : 'none';
 }
 
-async function submitBooking(){
-  const name=document.getElementById('custName').value.trim();
-  const phone=document.getElementById('custPhone').value.trim();
-  const date=document.getElementById('bookDate').value;
-  const lineId=document.getElementById('lineId').value.trim();
-  const igId=document.getElementById('igId').value.trim();
-  const notes=document.getElementById('notes').value.trim();
-  const timeStr=`${String(selH).padStart(2,'0')}:${selM}`;
+async function submitBooking() {
+  const name = document.getElementById('custName').value.trim();
+  const phone = document.getElementById('custPhone').value.trim();
+  const date = document.getElementById('bookDate').value;
+  const contact = contactType === 'line' ? document.getElementById('lineId').value.trim() : document.getElementById('igId').value.trim();
+  const notes = document.getElementById('notes').value.trim();
+  const timeStr = String(selH).padStart(2, '0') + ':' + selM;
 
-  // 驗證
-  if(!name){alert('請填寫姓名');return;}
-  if(!phone){alert('請填寫電話');return;}
-  if(!date){alert('請選擇日期');return;}
-  if(document.getElementById('dateWarn').style.display==='block'){alert('此日期不可預約保養');return;}
+  if (!name) { alert('請填寫姓名'); return; }
+  if (!phone) { alert('請填寫電話'); return; }
+  if (!date) { alert('請選擇日期'); return; }
+  if (document.getElementById('dateWarn').style.display === 'block') { alert('此日期不可預約保養'); return; }
+  if (!contact) { alert('請填寫' + (contactType === 'line' ? 'LINE ID' : 'Instagram 帳號')); return; }
 
-  // 聯絡方式擇一必填
-  const contact=contactType==='line'?lineId:igId;
-  if(!contact){alert(`請填寫${contactType==='line'?'LINE ID':'Instagram 帳號'}（擇一必填）`);return;}
+  let vname = '';
+  if (bType === 'bike') vname = selVname || '';
+  else vname = document.getElementById('maintVehicle').value.trim();
 
-  // 取得車款名
-  let vname='';
-  if(bType==='bike'){
-    vname=document.getElementById('vehicleSel').selectedOptions[0]?.text||'';
-    if(vname==='— 請選擇或略過 —')vname='';
-  } else {
-    vname=document.getElementById('maintVehicle').value.trim();
-  }
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = '送出中…';
 
-  const btn=document.getElementById('submitBtn');
-  btn.disabled=true;btn.textContent='送出中…';
-
-  const{error}=await sb.from('bookings').insert({
-    line_user_id:uid||'guest',
-    customer_name:name,phone,
-    line_id:contactType==='line'?lineId:null,
-    instagram:contactType==='ig'?igId:null,
-    vehicle_name:vname||null,
-    booking_type:bType==='bike'?'看重機':'保養',
-    booking_date:date,booking_time:timeStr,
-    notes:notes||null,status:'待確認',
+  const { error } = await sb.from('bookings').insert({
+    line_user_id: uid || 'guest',
+    customer_name: name, phone,
+    line_id: contactType === 'line' ? contact : null,
+    instagram: contactType === 'ig' ? contact : null,
+    vehicle_name: vname || null,
+    booking_type: bType === 'bike' ? '看重機' : '保養',
+    booking_date: date, booking_time: timeStr,
+    notes: notes || null, status: '待確認',
   });
 
-  if(error){alert('送出失敗：'+error.message);btn.disabled=false;btn.textContent='確認預約 ✨';return;}
+  if (error) { alert('送出失敗：' + error.message); btn.disabled = false; btn.textContent = '確認預約 ✨'; return; }
 
-  document.getElementById('formArea').style.display='none';
-  document.getElementById('successScreen').classList.add('show');
-  document.getElementById('successCard').innerHTML=`
-    <div class="sr"><span class="k">類型</span><span class="v">${bType==='bike'?'🏍️ 看重機':'🔧 保養'}</span></div>
-    ${vname?`<div class="sr"><span class="k">車款</span><span class="v">${vname}</span></div>`:''}
-    <div class="sr"><span class="k">日期</span><span class="v">${date}</span></div>
-    <div class="sr"><span class="k">時間</span><span class="v">${timeStr}</span></div>
-    <div class="sr"><span class="k">聯絡</span><span class="v">${contactType==='line'?'💬 '+lineId:'📸 '+igId}</span></div>
-    <div class="sr"><span class="k">狀態</span><span class="v">⏳ 待店家確認</span></div>
-  `;
+  document.getElementById('formArea').style.display = 'none';
+  document.getElementById('successScreen').classList.add('on');
+  document.getElementById('successCard').innerHTML =
+    '<div class="sr"><span class="k">類型</span><span class="v">' + (bType === 'bike' ? '🏍️ 看重機' : '🔧 保養') + '</span></div>' +
+    (vname ? '<div class="sr"><span class="k">車款</span><span class="v">' + vname + '</span></div>' : '') +
+    '<div class="sr"><span class="k">日期</span><span class="v">' + date + '</span></div>' +
+    '<div class="sr"><span class="k">時間</span><span class="v">' + timeStr + '</span></div>' +
+    '<div class="sr"><span class="k">聯絡</span><span class="v">' + (contactType === 'line' ? '💬 ' : '📸 ') + contact + '</span></div>' +
+    '<div class="sr"><span class="k">狀態</span><span class="v">⏳ 待店家確認</span></div>';
 }
 
 init().catch(console.error);
