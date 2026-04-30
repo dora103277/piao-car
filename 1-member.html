@@ -8,114 +8,168 @@
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
-:root{--pink:#ff85a1;--pink-light:#fff0f3;--pink-soft:#ffd6e0;--pink-mid:#ffb3c6;--brown:#6b3f2a;--gold:#f5c518;--dark:#1a1a1a;--red:#e53935;}
+:root{--pk:#ff85a1;--pl:#fff0f3;--ps:#ffd6e0;--pm:#ffb3c6;--br:#6b3f2a;--rd:#e53935;--gn:#0a6624;--gl:#d1f7d4;}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Noto Sans TC',sans-serif;background:var(--pink-light);min-height:100vh;}
-.topbar{background:linear-gradient(135deg,var(--dark),#333);padding:16px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-.topbar img{width:36px;height:36px;border-radius:8px;object-fit:cover;}
-.topbar-info h1{color:#fff;font-size:17px;font-weight:700;}
-.topbar-info p{color:var(--red);font-size:10px;letter-spacing:1px;margin-top:1px;}
-.content{padding:18px 16px 50px;}
-.loading{text-align:center;padding:80px 20px;color:#ccc;font-size:14px;}
-.member-card{background:linear-gradient(135deg,var(--pink-mid),var(--pink));border-radius:22px;padding:22px;margin-bottom:18px;box-shadow:0 8px 28px rgba(255,133,161,.35);position:relative;overflow:hidden;}
-.member-card::before{content:'🌸';font-size:100px;position:absolute;right:-12px;top:-20px;opacity:.12;}
-.avatar-row{display:flex;align-items:center;gap:16px;}
-.avatar{width:68px;height:68px;border-radius:50%;background:rgba(255,255,255,.95);display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.15);}
-.avatar img{width:100%;height:100%;object-fit:cover;}
-.member-name{color:#fff;font-size:19px;font-weight:900;}
-.member-phone{color:rgba(255,255,255,.85);font-size:12px;margin-top:3px;}
-.member-badge{display:inline-block;padding:3px 12px;border-radius:20px;font-size:11px;font-weight:700;margin-top:8px;}
-.badge-customer{background:var(--gold);color:#6b4700;}
-.badge-staff{background:#e8f4ff;color:#1456a0;}
-.badge-boss{background:#1a1a1a;color:#e53935;}
-.stats-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;}
-.stat-card{background:#fff;border-radius:16px;border:2px solid var(--pink-soft);padding:16px;text-align:center;}
-.stat-num{font-size:28px;font-weight:900;color:var(--pink);}
-.stat-label{font-size:11px;color:#999;margin-top:4px;}
-.section-title{font-size:13px;font-weight:900;color:var(--brown);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
-.section-title::after{content:'';flex:1;height:2px;background:linear-gradient(90deg,var(--pink-mid),transparent);border-radius:2px;}
-.info-list{background:#fff;border-radius:16px;border:2px solid var(--pink-soft);overflow:hidden;margin-bottom:18px;}
-.info-row{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid #f8f0f2;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--pl);min-height:100vh;}
+.topbar{background:linear-gradient(135deg,#1a1a1a,#2d2d2d);padding:14px 16px;display:flex;align-items:center;gap:10px;}
+.topbar img{width:32px;height:32px;border-radius:6px;object-fit:cover;}
+.topbar h1{color:#fff;font-size:16px;font-weight:700;}
+.topbar p{color:var(--rd);font-size:9px;letter-spacing:1px;}
+.content{padding:16px 14px 60px;}
+.ld{text-align:center;padding:60px 20px;color:#ccc;}
+.hero{background:linear-gradient(135deg,var(--pm),var(--pk));border-radius:20px;padding:20px;margin-bottom:16px;box-shadow:0 8px 24px rgba(255,133,161,.3);position:relative;overflow:hidden;display:flex;align-items:center;gap:14px;}
+.hero::before{content:'🌸';font-size:80px;position:absolute;right:-10px;top:-10px;opacity:.12;}
+.hero-avatar{width:64px;height:64px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,.5);flex-shrink:0;}
+.hero-info h2{color:#fff;font-size:18px;font-weight:900;margin-bottom:4px;}
+.hero-info p{color:rgba(255,255,255,.8);font-size:11px;}
+.badge{display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.25);border-radius:20px;padding:3px 10px;font-size:11px;color:#fff;font-weight:700;margin-top:6px;}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.stat-card{background:#fff;border-radius:14px;border:2px solid var(--ps);padding:14px;text-align:center;}
+.stat-num{font-size:28px;font-weight:900;color:var(--pk);}
+.stat-label{font-size:11px;color:#aaa;margin-top:3px;}
+.section-title{font-size:12px;font-weight:900;color:var(--br);margin:14px 0 8px;display:flex;align-items:center;gap:6px;}
+.section-title::after{content:'';flex:1;height:2px;background:linear-gradient(90deg,var(--pm),transparent);border-radius:2px;}
+.info-card{background:#fff;border-radius:14px;border:2px solid var(--ps);overflow:hidden;margin-bottom:12px;}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #f8f0f2;}
 .info-row:last-child{border:none;}
 .info-row .k{font-size:12px;color:#aaa;}
-.info-row .v{font-size:13px;font-weight:700;color:var(--brown);}
-.btn-close{width:100%;padding:14px;border-radius:16px;border:2px solid var(--pink-soft);background:#fff;color:var(--pink);font-size:14px;font-weight:700;font-family:'Noto Sans TC',sans-serif;cursor:pointer;transition:all .2s;}
-.btn-close:hover{background:var(--pink);color:#fff;}
+.info-row .v{font-size:13px;font-weight:700;color:var(--br);}
+.edit-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--pm),var(--pk));color:#fff;border:none;border-radius:14px;font-size:14px;font-weight:700;font-family:'Noto Sans TC',sans-serif;cursor:pointer;margin-bottom:10px;}
+.close-btn{width:100%;padding:12px;background:#fff;border:2px solid var(--ps);border-radius:14px;font-size:13px;font-weight:700;color:var(--pk);font-family:'Noto Sans TC',sans-serif;cursor:pointer;}
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:flex-end;}
+.ov.on{display:flex;}
+.sh{background:#fff;border-radius:22px 22px 0 0;padding:20px 16px 44px;width:100%;max-height:85vh;overflow-y:auto;animation:su .3s ease;}
+@keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sh-h{width:36px;height:4px;background:#eee;border-radius:2px;margin:0 auto 16px;}
+.sh h2{font-size:17px;font-weight:900;color:var(--br);margin-bottom:14px;}
+.fg{margin-bottom:10px;}
+.fg label{display:block;font-size:11px;font-weight:700;color:var(--br);margin-bottom:4px;}
+.fg input{width:100%;padding:11px 13px;border-radius:11px;border:2px solid var(--ps);background:#fff;font-family:'Noto Sans TC',sans-serif;font-size:14px;color:var(--br);outline:none;transition:border-color .2s;}
+.fg input:focus{border-color:var(--pk);}
+.save-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--pm),var(--pk));color:#fff;border:none;border-radius:14px;font-size:14px;font-weight:700;font-family:'Noto Sans TC',sans-serif;cursor:pointer;margin-top:6px;}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--br);color:#fff;padding:10px 20px;border-radius:20px;font-size:11px;font-weight:700;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+.toast.on{opacity:1;}
 </style>
 </head>
 <body>
 <div class="topbar">
   <img src="https://dora103277.github.io/piao-car/logo.jpg" onerror="this.style.display='none'">
-  <div class="topbar-info"><h1>驃宇重車</h1><p>PIAO YU.</p></div>
+  <div><h1>會員中心</h1><p>PIAO YU.</p></div>
 </div>
 <div class="content" id="content">
-  <div class="loading">載入中…</div>
+  <div class="ld">載入中…</div>
 </div>
+<div class="ov" id="ov" onclick="if(event.target===this)xOv()">
+  <div class="sh"><div class="sh-h"></div><div id="shc"></div></div>
+</div>
+<div class="toast" id="toast"></div>
 
 <script>
-const SUPABASE_URL = 'https://ufgpslpjtpzrtctrwdmj.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmZ3BzbHBqdHB6cnRjdHJ3ZG1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNzQyNjAsImV4cCI6MjA5Mjk1MDI2MH0.KK7noEUvdr4bPZEP8ihWXxlGGVK0hH-J5BHWjwX4nDg';
+const SU = 'https://ufgpslpjtpzrtctrwdmj.supabase.co';
+const SK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmZ3BzbHBqdHB6cnRjdHJ3ZG1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNzQyNjAsImV4cCI6MjA5Mjk1MDI2MH0.KK7noEUvdr4bPZEP8ihWXxlGGVK0hH-J5BHWjwX4nDg';
 const LIFF_ID = '2009926811-e1vXaP7l';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const sb = supabase.createClient(SU, SK);
+
+let memberId = '', memberData = {}, profilePic = '';
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  setTimeout(() => t.classList.remove('on'), 2200);
+}
+
+function oOv(h) { document.getElementById('shc').innerHTML = h; document.getElementById('ov').classList.add('on'); }
+function xOv() { document.getElementById('ov').classList.remove('on'); }
+
+const roleLabel = { customer: '⭐ 一般會員', technician: '🔧 技師', sales: '💼 業務', secretary: '📋 秘書', boss: '👑 老闆' };
 
 async function init() {
   try {
-  await liff.init({ liffId: LIFF_ID });
-  if (!liff.isLoggedIn()) { liff.login(); return; }
-  const profile = await liff.getProfile();
-  const lineId = profile.userId;
+    await liff.init({ liffId: LIFF_ID });
+    if (!liff.isLoggedIn()) { liff.login(); return; }
+    const profile = await liff.getProfile();
+    profilePic = profile.pictureUrl || '';
+    const lineId = profile.userId;
 
-  let { data: member } = await sb.from('members').select('*').eq('line_user_id', lineId).single();
-  if (!member) {
-    const { data: newM } = await sb.from('members').insert({
-      line_user_id: lineId, name: profile.displayName, role: 'customer'
-    }).select().single();
-    member = newM;
+    let { data: member } = await sb.from('members').select('*').eq('line_user_id', lineId).single();
+    if (!member) {
+      const { data: newM, error } = await sb.from('members').insert({
+        line_user_id: lineId,
+        name: profile.displayName,
+        role: 'customer',
+      }).select().single();
+      if (error) throw new Error('建立會員失敗：' + error.message);
+      member = newM;
+    }
+    memberId = member.id;
+    memberData = member;
+
+    const [{ count: bookingCount }, { count: installCount }] = await Promise.all([
+      sb.from('bookings').select('*', { count: 'exact', head: true }).eq('line_user_id', lineId),
+      sb.from('installments').select('*', { count: 'exact', head: true }).eq('line_user_id', lineId).eq('status', '繳款中'),
+    ]);
+
+    const role = member.role || 'customer';
+    const joined = member.created_at ? new Date(member.created_at).toLocaleDateString('zh-TW') : '—';
+
+    document.getElementById('content').innerHTML =
+      '<div class="hero">' +
+      '<img class="hero-avatar" src="' + profilePic + '" onerror="this.src=\'https://dora103277.github.io/piao-car/logo.jpg\'">' +
+      '<div class="hero-info">' +
+      '<h2>' + (member.name || profile.displayName) + '</h2>' +
+      '<p>加入日期：' + joined + '</p>' +
+      '<div class="badge">' + (roleLabel[role] || '⭐ 一般會員') + '</div>' +
+      '</div></div>' +
+
+      '<div class="stats">' +
+      '<div class="stat-card"><div class="stat-num">' + (bookingCount || 0) + '</div><div class="stat-label">累積預約次數</div></div>' +
+      '<div class="stat-card"><div class="stat-num">' + (installCount || 0) + '</div><div class="stat-label">進行中帳款</div></div>' +
+      '</div>' +
+
+      '<div class="section-title">基本資料</div>' +
+      '<div class="info-card">' +
+      '<div class="info-row"><span class="k">姓名</span><span class="v">' + (member.name || '—') + '</span></div>' +
+      '<div class="info-row"><span class="k">電話</span><span class="v">' + (member.phone || '尚未填寫') + '</span></div>' +
+      '<div class="info-row"><span class="k">LINE ID</span><span class="v">' + (member.line_id || '尚未填寫') + '</span></div>' +
+      '<div class="info-row"><span class="k">Instagram</span><span class="v">' + (member.instagram || '尚未填寫') + '</span></div>' +
+      '</div>' +
+
+      '<button class="edit-btn" onclick="openEdit()">✏️ 編輯基本資料</button>' +
+      '<button class="close-btn" onclick="liff.closeWindow()">關閉視窗</button>';
+
+  } catch (e) {
+    document.getElementById('content').innerHTML =
+      '<div class="ld">⚠️ 載入失敗<br><small style="color:#aaa;">' + e.message + '</small><br><br>' +
+      '<button onclick="init()" style="background:var(--pk);color:#fff;border:none;border-radius:10px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;">重試</button></div>';
   }
-
-  const { count: bookingCount } = await sb.from('bookings')
-    .select('*', { count: 'exact', head: true }).eq('line_user_id', lineId);
-
-  const { count: installCount } = await sb.from('installments')
-    .select('*', { count: 'exact', head: true })
-    .eq('line_user_id', lineId).eq('status', '繳款中');
-
-  const role = member.role || 'customer';
-  const badgeMap = { customer: ['badge-customer', '⭐ 一般會員'], staff: ['badge-staff', '👔 員工'], boss: ['badge-boss', '👑 老闆'] };
-  const [badgeClass, badgeText] = badgeMap[role] || badgeMap.customer;
-  const joined = member.created_at ? new Date(member.created_at).toLocaleDateString('zh-TW') : '—';
-
-  document.getElementById('content').innerHTML = `
-    <div class="member-card">
-      <div class="avatar-row">
-        <div class="avatar">${profile.pictureUrl ? `<img src="${profile.pictureUrl}">` : '👤'}</div>
-        <div>
-          <div class="member-name">${member.name || profile.displayName}</div>
-          <div class="member-phone">${member.phone || '尚未填寫電話'}</div>
-          <div class="member-badge ${badgeClass}">${badgeText}</div>
-        </div>
-      </div>
-    </div>
-    <div class="stats-row">
-      <div class="stat-card"><div class="stat-num">${bookingCount || 0}</div><div class="stat-label">累積預約次數</div></div>
-      <div class="stat-card"><div class="stat-num">${installCount || 0}</div><div class="stat-label">進行中帳款</div></div>
-    </div>
-    <div class="section-title">基本資料</div>
-    <div class="info-list">
-      <div class="info-row"><span class="k">姓名</span><span class="v">${member.name || profile.displayName}</span></div>
-      <div class="info-row"><span class="k">電話</span><span class="v">${member.phone || '—'}</span></div>
-      <div class="info-row"><span class="k">LINE ID</span><span class="v">${member.line_id || '—'}</span></div>
-      <div class="info-row"><span class="k">Instagram</span><span class="v">${member.instagram || '—'}</span></div>
-      <div class="info-row"><span class="k">加入日期</span><span class="v">${joined}</span></div>
-      ${role !== 'customer' ? `<div class="info-row"><span class="k">角色</span><span class="v">${badgeText}</span></div>` : ''}
-    </div>
-    <button class="btn-close" onclick="liff.closeWindow()">關閉視窗</button>
-  `;
 }
 
-init().catch(e => {
-  document.getElementById('content').innerHTML = `<div class="loading">⚠️ 載入失敗，請關閉重試<br><small>${e.message}</small></div>`;
-});
+function openEdit() {
+  oOv('<h2>✏️ 編輯基本資料</h2>' +
+    '<div class="fg"><label>姓名</label><input type="text" id="e-name" value="' + (memberData.name || '') + '" placeholder="您的姓名"></div>' +
+    '<div class="fg"><label>電話</label><input type="tel" id="e-phone" value="' + (memberData.phone || '') + '" placeholder="09xxxxxxxx"></div>' +
+    '<div class="fg"><label>LINE ID</label><input type="text" id="e-line" value="' + (memberData.line_id || '') + '" placeholder="LINE ID"></div>' +
+    '<div class="fg"><label>Instagram</label><input type="text" id="e-ig" value="' + (memberData.instagram || '') + '" placeholder="Instagram 帳號"></div>' +
+    '<button class="save-btn" onclick="saveEdit()">✅ 儲存</button>');
+}
+
+async function saveEdit() {
+  const name = document.getElementById('e-name').value.trim();
+  const phone = document.getElementById('e-phone').value.trim();
+  const line_id = document.getElementById('e-line').value.trim();
+  const instagram = document.getElementById('e-ig').value.trim();
+
+  const { error } = await sb.from('members').update({ name, phone, line_id, instagram }).eq('id', memberId);
+  if (error) { alert('儲存失敗：' + error.message); return; }
+
+  memberData = { ...memberData, name, phone, line_id, instagram };
+  xOv();
+  toast('✅ 已儲存！');
+  setTimeout(() => init(), 500);
+}
+
+init();
 </script>
 </body>
 </html>
