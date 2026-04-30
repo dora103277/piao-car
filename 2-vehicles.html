@@ -201,6 +201,9 @@ async function init() {
     const p = await liff.getProfile();
     const { data: m } = await sb.from('members').select('role').eq('line_user_id', p.userId).single();
     if (m) userRole = m.role || 'customer';
+    // debug
+    console.log('userId:', p.userId, 'role:', userRole);
+    document.title = 'role:' + userRole + ' id:' + p.userId.slice(-6);
   } catch (e) { console.log('LIFF:', e.message); }
 
   const { data } = await sb.from('vehicles').select('*').order('entry_date', { ascending: false });
