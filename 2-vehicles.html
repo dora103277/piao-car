@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
 <title>在庫車輛 | 驃宇重車</title>
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -16,18 +16,28 @@ body{font-family:'Noto Sans TC',sans-serif;background:#f5f5f5;min-height:100vh;}
 .topbar h1{color:#fff;font-size:16px;font-weight:700;}
 .topbar p{color:var(--rd);font-size:9px;letter-spacing:1px;}
 .search-wrap{padding:12px 12px 0;}
-.search-bar{background:#fff;border-radius:12px;border:2px solid var(--ps);padding:10px 14px;display:flex;align-items:center;gap:8px;}
-.search-bar input{flex:1;border:none;outline:none;font-family:'Noto Sans TC',sans-serif;font-size:14px;color:var(--br);}
-.filter-bar{display:flex;gap:8px;padding:10px 12px;overflow-x:auto;}
-.filter-bar::-webkit-scrollbar{display:none;}
+.sb{background:#fff;border-radius:12px;border:2px solid var(--ps);padding:10px 14px;display:flex;align-items:center;gap:8px;}
+.sb input{flex:1;border:none;outline:none;font-family:'Noto Sans TC',sans-serif;font-size:14px;color:var(--br);}
+.ft{display:flex;gap:8px;padding:10px 12px;overflow-x:auto;}
+.ft::-webkit-scrollbar{display:none;}
 .fp{white-space:nowrap;padding:6px 14px;border-radius:14px;font-size:11px;font-weight:700;cursor:pointer;background:#fff;border:2px solid var(--ps);color:#aaa;}
 .fp.on{background:var(--pk);border-color:var(--pk);color:#fff;}
 .car-list{padding:0 12px 80px;}
-.loading{text-align:center;padding:60px 20px;color:#ccc;}
+.ld{text-align:center;padding:60px 20px;color:#ccc;}
 .car-card{background:#fff;border-radius:16px;border:2px solid var(--ps);overflow:hidden;margin-bottom:12px;cursor:pointer;transition:all .2s;}
 .car-card:active{transform:scale(.98);}
-.car-photo-wrap{width:100%;height:200px;background:#f9f9f9;display:flex;align-items:center;justify-content:center;font-size:60px;overflow:hidden;}
-.car-photo-wrap img{width:100%;height:200px;object-fit:cover;}
+
+/* 照片輪播 */
+.photo-slider{position:relative;width:100%;height:220px;overflow:hidden;background:#f0f0f0;}
+.photo-slider-inner{display:flex;height:100%;transition:transform .3s ease;}
+.photo-slide{min-width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+.photo-slide img{width:100%;height:100%;object-fit:cover;touch-action:pinch-zoom;}
+.photo-no{font-size:60px;}
+.photo-dots{position:absolute;bottom:8px;left:0;right:0;display:flex;justify-content:center;gap:5px;}
+.dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.5);}
+.dot.on{background:#fff;}
+.photo-count{position:absolute;top:8px;right:10px;background:rgba(0,0,0,.5);color:#fff;border-radius:10px;padding:2px 8px;font-size:11px;}
+
 .car-body{padding:14px;}
 .car-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
 .car-name{font-size:18px;font-weight:900;color:var(--br);}
@@ -37,22 +47,40 @@ body{font-family:'Noto Sans TC',sans-serif;background:#f5f5f5;min-height:100vh;}
 .car-tag{background:var(--pl);border-radius:8px;padding:3px 8px;font-size:11px;color:#c9667c;}
 .car-price{font-size:24px;font-weight:900;color:var(--pk);margin-bottom:4px;}
 .car-cost{font-size:11px;color:#aaa;margin-top:2px;}
+
+/* 詳細 Overlay */
 .ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:flex-end;}
 .ov.on{display:flex;}
-.sh{background:#fff;border-radius:22px 22px 0 0;padding:20px 16px 44px;width:100%;max-height:90vh;overflow-y:auto;animation:su .3s ease;position:relative;}
+.sh{background:#fff;border-radius:22px 22px 0 0;padding:0 0 44px;width:100%;max-height:92vh;overflow-y:auto;animation:su .3s ease;}
 @keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.sh-h{width:36px;height:4px;background:#eee;border-radius:2px;margin:0 auto 16px;}
-.sh-x{position:absolute;top:14px;right:16px;font-size:20px;cursor:pointer;color:#ccc;}
-.photos-scroll{display:flex;gap:6px;overflow-x:auto;margin-bottom:14px;padding-bottom:4px;}
-.photos-scroll::-webkit-scrollbar{display:none;}
-.photos-scroll img{width:120px;height:90px;object-fit:cover;border-radius:10px;flex-shrink:0;}
+.sh-handle{width:36px;height:4px;background:#eee;border-radius:2px;margin:12px auto 0;}
+.sh-close{position:absolute;top:14px;right:16px;font-size:22px;cursor:pointer;color:#fff;background:rgba(0,0,0,.4);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;z-index:10;}
+
+/* 大照片輪播 */
+.big-photo-slider{position:relative;width:100%;height:260px;overflow:hidden;background:#111;}
+.big-slider-inner{display:flex;height:100%;transition:transform .3s ease;}
+.big-slide{min-width:100%;height:100%;overflow:hidden;position:relative;}
+.big-slide img{width:100%;height:100%;object-fit:contain;touch-action:pan-y pinch-zoom;}
+.slider-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.4);color:#fff;border:none;border-radius:50%;width:32px;height:32px;font-size:16px;cursor:pointer;z-index:5;}
+.slider-btn.left{left:8px;}
+.slider-btn.right{right:8px;}
+
+.sh-body{padding:14px;}
 .dr{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f8f0f2;font-size:13px;}
 .dr:last-child{border:none;}
-.dr .k{color:#aaa;} .dr .v{font-weight:700;color:var(--br);}
-.book-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--pm),var(--pk));color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;font-family:'Noto Sans TC',sans-serif;cursor:pointer;margin-top:12px;}
-.book-btn.sold{background:#eee;color:#aaa;cursor:default;}
+.dr .k{color:#aaa;}.dr .v{font-weight:700;color:var(--br);}
+.desc-box{background:var(--pl);border-radius:10px;padding:12px;margin:10px 0;font-size:13px;color:var(--br);line-height:1.6;white-space:pre-wrap;}
 .boss-box{background:#fff8e1;border-radius:10px;padding:10px;margin:10px 0;font-size:11px;color:#856404;}
 .pi{display:flex;justify-content:space-between;font-size:11px;padding:2px 0;color:#666;}
+.book-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--pm),var(--pk));color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;font-family:'Noto Sans TC',sans-serif;cursor:pointer;margin-top:12px;}
+.book-btn.sold{background:#eee;color:#aaa;cursor:default;}
+.sales-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+.sales-btn{padding:11px;border-radius:12px;font-size:12px;font-weight:700;border:none;cursor:pointer;font-family:'Noto Sans TC',sans-serif;}
+.sales-btn.copy{background:var(--pl);color:var(--pk);border:2px solid var(--ps);}
+.sales-btn.download{background:var(--gl);color:var(--gn);border:2px solid #b2e8d0;}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--br);color:#fff;padding:10px 20px;border-radius:20px;font-size:11px;font-weight:700;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+.toast.on{opacity:1;}
 </style>
 </head>
 <body>
@@ -61,112 +89,275 @@ body{font-family:'Noto Sans TC',sans-serif;background:#f5f5f5;min-height:100vh;}
   <div><h1>在庫車輛</h1><p>PIAO YU.</p></div>
 </div>
 <div class="search-wrap">
-  <div class="search-bar"><span>🔍</span><input type="text" id="search" placeholder="搜尋車款、車牌…" oninput="filterCars()"></div>
+  <div class="sb"><span>🔍</span><input type="text" id="search" placeholder="搜尋車款…" oninput="filterCars()"></div>
 </div>
-<div class="filter-bar">
+<div class="ft">
   <div class="fp on" onclick="setStatus('在庫',this)">在庫</div>
   <div class="fp" onclick="setStatus('已售出',this)">已售出</div>
   <div class="fp" onclick="setStatus('all',this)">全部</div>
 </div>
-<div class="car-list" id="carList"><div class="loading">載入中…</div></div>
+<div class="car-list" id="carList"><div class="ld">載入中…</div></div>
 <div class="ov" id="ov" onclick="if(event.target===this)xOv()">
-  <div class="sh"><div class="sh-h"></div><span class="sh-x" onclick="xOv()">✕</span><div id="shc"></div></div>
+  <div class="sh" id="sh" style="position:relative;">
+    <div class="sh-handle"></div>
+    <span class="sh-close" onclick="xOv()">✕</span>
+    <div id="shc"></div>
+  </div>
 </div>
-<script>
-const SU='https://ufgpslpjtpzrtctrwdmj.supabase.co';
-const SK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmZ3BzbHBqdHB6cnRjdHJ3ZG1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNzQyNjAsImV4cCI6MjA5Mjk1MDI2MH0.KK7noEUvdr4bPZEP8ihWXxlGGVK0hH-J5BHWjwX4nDg';
-const LIFF_ID='2009926811-0DAVFlbx';
-const sb=supabase.createClient(SU,SK);
-let allCars=[],userRole='customer',curStatus='在庫';
+<div class="toast" id="toast"></div>
 
-async function init(){
-  try{
-    await liff.init({liffId:LIFF_ID});
-    if(liff.isLoggedIn()){
-      const p=await liff.getProfile();
-      const{data:m}=await sb.from('members').select('role').eq('line_user_id',p.userId).single();
-      if(m)userRole=m.role||'customer';
-    } else { liff.login(); return; }
-  }catch(e){console.log('LIFF init error',e);}
-  const{data,error}=await sb.from('vehicles').select('*').order('entry_date',{ascending:false});
-  if(error){document.getElementById('carList').innerHTML='<div class="loading">⚠️ 載入失敗，請重試</div>';return;}
-  allCars=data||[];
+<script>
+const SU = 'https://ufgpslpjtpzrtctrwdmj.supabase.co';
+const SK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmZ3BzbHBqdHB6cnRjdHJ3ZG1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNzQyNjAsImV4cCI6MjA5Mjk1MDI2MH0.KK7noEUvdr4bPZEP8ihWXxlGGVK0hH-J5BHWjwX4nDg';
+const LIFF_ID = '2009926811-0DAVFlbx';
+const sb = supabase.createClient(SU, SK);
+
+let allCars = [], userRole = 'customer', curStatus = '在庫';
+let curSlide = 0, slidePhotos = [];
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  setTimeout(() => t.classList.remove('on'), 2200);
+}
+
+async function init() {
+  try {
+    await liff.init({ liffId: LIFF_ID });
+    if (!liff.isLoggedIn()) { liff.login(); return; }
+    const p = await liff.getProfile();
+    const { data: m } = await sb.from('members').select('role').eq('line_user_id', p.userId).single();
+    if (m) userRole = m.role || 'customer';
+  } catch (e) { console.log('LIFF:', e.message); }
+
+  const { data } = await sb.from('vehicles').select('*').order('entry_date', { ascending: false });
+  allCars = data || [];
   render();
 }
 
-function setStatus(s,el){
-  curStatus=s;
-  document.querySelectorAll('.fp').forEach(t=>t.classList.remove('on'));
+function setStatus(s, el) {
+  curStatus = s;
+  document.querySelectorAll('.fp').forEach(t => t.classList.remove('on'));
   el.classList.add('on');
   render();
 }
 
-function filterCars(){render();}
+function filterCars() { render(); }
 
-function render(){
-  const q=(document.getElementById('search')?.value||'').toLowerCase();
-  const list=allCars.filter(c=>{
-    const ms=curStatus==='all'||c.status===curStatus;
-    const mq=!q||(c.name||'').toLowerCase().includes(q)||(c.plate||'').toLowerCase().includes(q);
-    return ms&&mq;
+const isBossRole = () => ['boss', 'secretary'].includes(userRole);
+const canSeePlate = () => ['boss', 'secretary', 'technician'].includes(userRole);
+const isSalesRole = () => ['boss', 'secretary', 'sales'].includes(userRole);
+
+function render() {
+  const q = (document.getElementById('search').value || '').toLowerCase();
+  const list = allCars.filter(c => {
+    const ms = curStatus === 'all' || c.status === curStatus;
+    const mq = !q || (c.name || '').toLowerCase().includes(q);
+    return ms && mq;
   });
-  if(!list.length){document.getElementById('carList').innerHTML='<div class="loading">沒有符合的車輛</div>';return;}
-  const isBoss=['boss','secretary'].includes(userRole);
-  document.getElementById('carList').innerHTML=list.map(c=>{
-    const photos=c.photos||[];
-    const parts=c.parts||[];
-    const pt=parts.reduce((s,p)=>s+(parseInt(p.amount)||0),0);
-    const tc=(c.cost||0)+pt;
-    const isSold=c.status==='已售出';
-    return `<div class="car-card" onclick="openDetail('${c.id}')">
-      <div class="car-photo-wrap">${photos.length?`<img src="${photos[0]}" alt="${c.name}">`:'🏍️'}</div>
-      <div class="car-body">
-        <div class="car-head"><span class="car-name">${c.name}</span><span class="status-pill ${isSold?'sold':''}">${c.status}</span></div>
-        <div class="car-tags">
-          ${c.year?`<span class="car-tag">${c.year}年</span>`:''}
-          ${c.mileage?`<span class="car-tag">${c.mileage.toLocaleString()}km</span>`:''}
-          ${c.plate?`<span class="car-tag">${c.plate}</span>`:''}
-          ${c.color?`<span class="car-tag">${c.color}</span>`:''}
-        </div>
-        <div class="car-price">${c.price?'NT$ '+c.price.toLocaleString():'洽詢價格'}</div>
-        ${isBoss?`<div class="car-cost">進價 NT$ ${(c.cost||0).toLocaleString()} · 總成本 NT$ ${tc.toLocaleString()}</div>`:''}
-      </div>
-    </div>`;
+  if (!list.length) { document.getElementById('carList').innerHTML = '<div class="ld">沒有符合的車輛</div>'; return; }
+
+  document.getElementById('carList').innerHTML = list.map(c => {
+    const photos = c.photos || [];
+    const parts = c.parts || [];
+    const pt = parts.reduce((s, p) => s + (parseInt(p.amount) || 0), 0);
+    const tc = (c.cost || 0) + pt;
+    const isSold = c.status === '已售出';
+
+    let photoHtml = '';
+    if (photos.length > 0) {
+      photoHtml = '<div class="photo-slider" id="slider-' + c.id + '" data-id="' + c.id + '">' +
+        '<div class="photo-slider-inner" id="inner-' + c.id + '">' +
+        photos.map(p => '<div class="photo-slide"><img src="' + p + '" alt="' + c.name + '" loading="lazy"></div>').join('') +
+        '</div>' +
+        (photos.length > 1 ? '<div class="photo-dots">' + photos.map((_, i) => '<div class="dot' + (i === 0 ? ' on' : '') + '" id="dot-' + c.id + '-' + i + '"></div>').join('') + '</div>' : '') +
+        (photos.length > 1 ? '<div class="photo-count">' + photos.length + ' 張</div>' : '') +
+        '</div>';
+    } else {
+      photoHtml = '<div class="photo-slider" style="display:flex;align-items:center;justify-content:center;"><span class="photo-no">🏍️</span></div>';
+    }
+
+    return '<div class="car-card" onclick="openDetail(\'' + c.id + '\')">' +
+      photoHtml +
+      '<div class="car-body">' +
+      '<div class="car-head"><span class="car-name">' + c.name + '</span>' +
+      '<span class="status-pill' + (isSold ? ' sold' : '') + '">' + c.status + '</span></div>' +
+      '<div class="car-tags">' +
+      (c.year ? '<span class="car-tag">' + c.year + '年</span>' : '') +
+      (c.mileage ? '<span class="car-tag">' + c.mileage + 'km</span>' : '') +
+      (canSeePlate() && c.plate ? '<span class="car-tag">' + c.plate + '</span>' : '') +
+      (c.color ? '<span class="car-tag">' + c.color + '</span>' : '') +
+      '</div>' +
+      '<div class="car-price">' + (c.price ? 'NT$ ' + c.price.toLocaleString() : '洽詢價格') + '</div>' +
+      (isBossRole() ? '<div class="car-cost">進價 NT$ ' + (c.cost || 0).toLocaleString() + ' · 總成本 NT$ ' + tc.toLocaleString() + '</div>' : '') +
+      '</div></div>';
   }).join('');
+
+  // 初始化卡片上的滑動
+  list.forEach(c => {
+    if ((c.photos || []).length > 1) initCardSlider(c.id, c.photos);
+  });
 }
 
-function openDetail(id){
-  const c=allCars.find(x=>x.id===id);if(!c)return;
-  const photos=c.photos||[];
-  const parts=c.parts||[];
-  const pt=parts.reduce((s,p)=>s+(parseInt(p.amount)||0),0);
-  const tc=(c.cost||0)+pt;
-  const isBoss=['boss','secretary'].includes(userRole);
-  const isSold=c.status==='已售出';
-  document.getElementById('shc').innerHTML=`
-    ${photos.length?`<div class="photos-scroll">${photos.map(p=>`<img src="${p}">`).join('')}</div>`:''}
-    <div style="font-size:20px;font-weight:900;color:var(--br);margin-bottom:4px;">🏍️ ${c.name}</div>
-    <div style="font-size:22px;font-weight:900;color:var(--pk);margin-bottom:14px;">${c.price?'NT$ '+c.price.toLocaleString():'洽詢價格'}</div>
-    <div class="dr"><span class="k">年份</span><span class="v">${c.year||'—'}年</span></div>
-    <div class="dr"><span class="k">里程</span><span class="v">${c.mileage?c.mileage.toLocaleString()+'km':'—'}</span></div>
-    <div class="dr"><span class="k">車牌</span><span class="v">${c.plate||'—'}</span></div>
-    <div class="dr"><span class="k">顏色</span><span class="v">${c.color||'—'}</span></div>
-    ${c.next_inspection?`<div class="dr"><span class="k">定檢日期</span><span class="v">${new Date(c.next_inspection).toLocaleDateString('zh-TW')}</span></div>`:''}
-    ${c.description?`<div style="background:var(--pl);border-radius:10px;padding:12px;margin:10px 0;font-size:13px;color:var(--br);line-height:1.6;">📝 ${c.description}</div>`:''}
-    ${isBoss?`<div class="boss-box">
-      <div style="font-weight:700;margin-bottom:6px;">📊 成本明細（僅秘書/老闆可見）</div>
-      <div class="pi"><span>車輛成本</span><span>NT$ ${(c.cost||0).toLocaleString()}</span></div>
-      ${parts.map(p=>`<div class="pi"><span>└ ${p.name}</span><span>NT$ ${(p.amount||0).toLocaleString()}</span></div>`).join('')}
-      <div class="pi" style="font-weight:700;border-top:1px solid #e0c040;margin-top:4px;padding-top:4px;"><span>總成本</span><span>NT$ ${tc.toLocaleString()}</span></div>
-      ${c.price?`<div class="pi" style="font-weight:900;color:${(c.price-tc)>=0?'var(--gn)':'var(--rd)'}"><span>毛利</span><span>NT$ ${(c.price-tc).toLocaleString()}</span></div>`:''}
-    </div>`:''}
-    ${!isSold?`<button class="book-btn" onclick="bookCar('${c.name.replace(/'/g,"\\'")}')">📅 預約看這台車</button>`:`<button class="book-btn sold" disabled>此車輛已售出</button>`}`;
+function initCardSlider(id, photos) {
+  const slider = document.getElementById('slider-' + id);
+  if (!slider) return;
+  let startX = 0, curIdx = 0;
+  slider.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
+  slider.addEventListener('touchend', e => {
+    const diff = startX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 40) {
+      curIdx = diff > 0 ? Math.min(curIdx + 1, photos.length - 1) : Math.max(curIdx - 1, 0);
+      const inner = document.getElementById('inner-' + id);
+      if (inner) inner.style.transform = 'translateX(-' + curIdx * 100 + '%)';
+      photos.forEach((_, i) => {
+        const dot = document.getElementById('dot-' + id + '-' + i);
+        if (dot) dot.className = 'dot' + (i === curIdx ? ' on' : '');
+      });
+    }
+    e.stopPropagation();
+  }, { passive: true });
+  // 防止滑動觸發 onclick
+  slider.addEventListener('touchmove', e => { e.stopPropagation(); }, { passive: true });
+}
+
+function openDetail(id) {
+  const c = allCars.find(x => x.id === id);
+  if (!c) return;
+  const photos = c.photos || [];
+  const parts = c.parts || [];
+  const pt = parts.reduce((s, p) => s + (parseInt(p.amount) || 0), 0);
+  const tc = (c.cost || 0) + pt;
+  const isSold = c.status === '已售出';
+  const showPlate = canSeePlate();
+  const showCost = isBossRole();
+  const showSales = isSalesRole();
+
+  curSlide = 0;
+  slidePhotos = photos;
+
+  let photoHtml = '';
+  if (photos.length > 0) {
+    photoHtml = '<div class="big-photo-slider">' +
+      '<div class="big-slider-inner" id="bigSlider">' +
+      photos.map((p, i) => '<div class="big-slide"><img src="' + p + '" alt="' + c.name + '" style="touch-action:pinch-zoom;"></div>').join('') +
+      '</div>' +
+      (photos.length > 1 ? '<button class="slider-btn left" onclick="slidePhoto(-1)">‹</button><button class="slider-btn right" onclick="slidePhoto(1)">›</button>' : '') +
+      '<div class="photo-dots" id="bigDots">' + photos.map((_, i) => '<div class="dot' + (i === 0 ? ' on' : '') + '" id="bdot-' + i + '"></div>').join('') + '</div>' +
+      '<div class="photo-count">' + photos.length + ' 張</div>' +
+      '</div>';
+  } else {
+    photoHtml = '<div style="height:180px;display:flex;align-items:center;justify-content:center;background:#f9f9f9;font-size:80px;">🏍️</div>';
+  }
+
+  document.getElementById('shc').innerHTML =
+    photoHtml +
+    '<div class="sh-body">' +
+    '<div style="font-size:20px;font-weight:900;color:var(--br);margin-bottom:4px;">🏍️ ' + c.name + '</div>' +
+    '<div style="font-size:22px;font-weight:900;color:var(--pk);margin-bottom:14px;">' + (c.price ? 'NT$ ' + c.price.toLocaleString() : '洽詢價格') + '</div>' +
+    '<div class="dr"><span class="k">年份</span><span class="v">' + (c.year || '—') + '年</span></div>' +
+    '<div class="dr"><span class="k">里程</span><span class="v">' + (c.mileage || '—') + 'km</span></div>' +
+    (showPlate ? '<div class="dr"><span class="k">車牌</span><span class="v">' + (c.plate || '—') + '</span></div>' : '') +
+    (c.color ? '<div class="dr"><span class="k">顏色</span><span class="v">' + c.color + '</span></div>' : '') +
+    (c.next_inspection ? '<div class="dr"><span class="k">定檢日期</span><span class="v">' + new Date(c.next_inspection).toLocaleDateString('zh-TW') + '</span></div>' : '') +
+    (c.description ? '<div class="desc-box">' + c.description + '</div>' : '') +
+    (showCost ? '<div class="boss-box"><div style="font-weight:700;margin-bottom:6px;">📊 成本明細</div>' +
+      '<div class="pi"><span>車輛成本</span><span>NT$ ' + (c.cost || 0).toLocaleString() + '</span></div>' +
+      parts.map(p => '<div class="pi"><span>└ ' + p.name + '</span><span>NT$ ' + (p.amount || 0).toLocaleString() + '</span></div>').join('') +
+      '<div class="pi" style="font-weight:700;border-top:1px solid #e0c040;margin-top:4px;padding-top:4px;"><span>總成本</span><span>NT$ ' + tc.toLocaleString() + '</span></div>' +
+      (c.price ? '<div class="pi" style="font-weight:900;color:' + ((c.price - tc) >= 0 ? 'var(--gn)' : 'var(--rd)') + '"><span>毛利</span><span>NT$ ' + (c.price - tc).toLocaleString() + '</span></div>' : '') +
+      '</div>' : '') +
+    (!isSold ? '<button class="book-btn" onclick="bookCar(\'' + c.name.replace(/'/g, "\\'") + '\')">📅 預約看這台車</button>' : '<button class="book-btn sold" disabled>此車輛已售出</button>') +
+    (showSales ? '<div class="sales-btns">' +
+      '<button class="sales-btn copy" onclick="copyCarText(\'' + c.id + '\')">📋 複製內文</button>' +
+      (photos.length > 0 ? '<button class="sales-btn download" onclick="downloadPhotos(\'' + c.id + '\')">⬇️ 下載照片</button>' : '') +
+      '</div>' : '') +
+    '</div>';
+
   document.getElementById('ov').classList.add('on');
-}
-function xOv(){document.getElementById('ov').classList.remove('on');}
-function bookCar(name){xOv();liff.openWindow({url:`https://liff.line.me/2009926811-UQty4dKV?vehicle=${encodeURIComponent(name)}`,external:false});}
 
-init().catch(e=>{document.getElementById('carList').innerHTML='<div class="loading">⚠️ 載入失敗，請重試</div>';});
+  // 大照片滑動
+  if (photos.length > 1) {
+    const bigSlider = document.getElementById('bigSlider');
+    let startX = 0;
+    bigSlider.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
+    bigSlider.addEventListener('touchend', e => {
+      const diff = startX - e.changedTouches[0].clientX;
+      if (Math.abs(diff) > 40) slidePhoto(diff > 0 ? 1 : -1);
+    }, { passive: true });
+  }
+}
+
+function slidePhoto(dir) {
+  curSlide = Math.max(0, Math.min(curSlide + dir, slidePhotos.length - 1));
+  const inner = document.getElementById('bigSlider');
+  if (inner) inner.style.transform = 'translateX(-' + curSlide * 100 + '%)';
+  slidePhotos.forEach((_, i) => {
+    const dot = document.getElementById('bdot-' + i);
+    if (dot) dot.className = 'dot' + (i === curSlide ? ' on' : '');
+  });
+}
+
+function xOv() { document.getElementById('ov').classList.remove('on'); }
+
+function bookCar(name) {
+  xOv();
+  liff.openWindow({ url: 'https://liff.line.me/2009926811-UQty4dKV?vehicle=' + encodeURIComponent(name), external: false });
+}
+
+function copyCarText(id) {
+  const c = allCars.find(x => x.id === id);
+  if (!c) return;
+  const parts = c.parts || [];
+  let text = '車輛：' + c.name + '\n';
+  if (c.year) text += '年份：' + c.year + '年\n';
+  if (c.mileage) text += '里程：' + c.mileage + 'km\n';
+  if (parts.length) text += '改裝：' + parts.map(p => p.name).join(' ') + '\n';
+  if (c.price) text += '售價：NT$ ' + c.price.toLocaleString() + '\n';
+  if (c.description) text += '備註：' + c.description + '\n';
+  text += '車輛所在：新北土城區\n聯絡：@704uyvki';
+
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => toast('✅ 已複製！'));
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    toast('✅ 已複製！');
+  }
+}
+
+async function downloadPhotos(id) {
+  const c = allCars.find(x => x.id === id);
+  if (!c || !(c.photos || []).length) return;
+  toast('下載中…');
+  for (let i = 0; i < c.photos.length; i++) {
+    try {
+      const res = await fetch(c.photos[i]);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = c.name.replace(/\s/g, '_') + '_' + (i + 1) + '.jpg';
+      a.click();
+      URL.revokeObjectURL(url);
+      await new Promise(r => setTimeout(r, 500));
+    } catch (e) {
+      // 若 fetch 失敗，直接開新視窗
+      window.open(c.photos[i], '_blank');
+    }
+  }
+  toast('✅ 下載完成！');
+}
+
+init().catch(e => {
+  document.getElementById('carList').innerHTML = '<div class="ld">⚠️ 載入失敗，請重試</div>';
+  console.error(e);
+});
 </script>
 </body>
 </html>

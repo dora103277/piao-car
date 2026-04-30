@@ -59,6 +59,7 @@ const LIFF_ID = '2009926811-e1vXaP7l';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function init() {
+  try {
   await liff.init({ liffId: LIFF_ID });
   if (!liff.isLoggedIn()) { liff.login(); return; }
   const profile = await liff.getProfile();
@@ -113,7 +114,7 @@ async function init() {
 }
 
 init().catch(e => {
-  document.getElementById('content').innerHTML = `<div class="loading">載入失敗：${e.message}</div>`;
+  document.getElementById('content').innerHTML = `<div class="loading">⚠️ 載入失敗，請關閉重試<br><small>${e.message}</small></div>`;
 });
 </script>
 </body>
