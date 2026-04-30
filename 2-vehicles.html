@@ -84,6 +84,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:#f5f5f5;min-height:100vh;}
 </style>
 </head>
 <body>
+<div id="dbg" style="color:#fff;padding:6px 12px;font-size:11px;text-align:center;display:block;">載入中...</div>
 <div class="topbar">
   <img src="https://dora103277.github.io/piao-car/logo.jpg" onerror="this.style.display='none'">
   <div><h1>在庫車輛</h1><p>PIAO YU.</p></div>
@@ -195,22 +196,16 @@ const isBoss = () => ['boss', 'secretary'].includes(userRole);
 const isSales = () => ['boss', 'secretary', 'sales'].includes(userRole);
 
 async function init() {
+  const dbg = document.getElementById('dbg');
   try {
     await liff.init({ liffId: LIFF_ID });
     if (!liff.isLoggedIn()) { liff.login(); return; }
     const p = await liff.getProfile();
     const { data: m } = await sb.from('members').select('role').eq('line_user_id', p.userId).single();
     if (m) userRole = m.role || 'customer';
-    // 顯示 debug 資訊
-    const dbg = document.createElement('div');
-    dbg.style.cssText = 'background:#333;color:#fff;padding:8px 12px;font-size:11px;text-align:center;';
-    dbg.textContent = 'ID末6碼:' + p.userId.slice(-6) + ' 角色:' + userRole;
-    document.body.insertBefore(dbg, document.body.firstChild);
+    if (dbg) { dbg.style.background='#333'; dbg.textContent='ID末6:' + p.userId.slice(-6) + ' 角色:' + userRole; }
   } catch (e) {
-    const dbg = document.createElement('div');
-    dbg.style.cssText = 'background:red;color:#fff;padding:8px 12px;font-size:11px;text-align:center;';
-    dbg.textContent = 'LIFF錯誤:' + e.message;
-    document.body.insertBefore(dbg, document.body.firstChild);
+    if (dbg) { dbg.style.background='red'; dbg.textContent='錯誤:' + e.message; }
   }
 
   const { data } = await sb.from('vehicles').select('*').order('entry_date', { ascending: false });
