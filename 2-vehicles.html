@@ -390,7 +390,8 @@ function bookCar(name) {
 }
 
 function copyText(text) {
-  // 先嘗試 clipboard API
+  const isLine = /Line/i.test(navigator.userAgent);
+  if (isLine) { showCopyModal(text); return; }
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(text).then(() => {
       toast('✅ 已複製！');
@@ -401,7 +402,9 @@ function copyText(text) {
 }
 
 function fallbackCopy(text) {
-  // LINE 瀏覽器 fallback：textarea select + execCommand
+  // LINE 瀏覽器直接跳彈窗
+  const isLine = /Line/i.test(navigator.userAgent);
+  if (isLine) { showCopyModal(text); return; }
   const ta = document.createElement('textarea');
   ta.value = text;
   ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
@@ -413,7 +416,6 @@ function fallbackCopy(text) {
     if (ok) { toast('✅ 已複製！'); return; }
   } catch(e) {}
   document.body.removeChild(ta);
-  // 最後手段：彈窗讓用戶長按複製
   showCopyModal(text);
 }
 
