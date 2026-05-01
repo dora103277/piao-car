@@ -357,7 +357,8 @@ function openDetail(id) {
       '<div style="font-size:10px;font-weight:700;color:#aaa;margin-bottom:6px;">📋 業務內文（點複製）</div>' +
       '<div style="font-size:11px;color:#555;white-space:pre-wrap;line-height:1.7;">' + salesText + '</div>' +
       '<div class="sales-grid">' +
-      '<button class="s-btn s-copy" onclick="copyText(' + JSON.stringify(salesText) + ')">📋 複製內文</button>' +
+      '<textarea id="st-' + c.id + '" style="display:none;">' + salesText + '</textarea>' +
+      '<button class="s-btn s-copy" onclick="copyById(\'st-' + c.id + '\')">📋 複製內文</button>' +
       (photos.length > 0 ? '<button class="s-btn s-dl" onclick="dlPhotos(\'' + id + '\')">⬇️ 下載照片</button>' : '') +
       '</div></div>' : '') +
     '</div>';
@@ -387,6 +388,11 @@ function xOv() { document.getElementById('ov').classList.remove('on'); }
 function bookCar(name) {
   xOv();
   liff.openWindow({ url: 'https://liff.line.me/2009926811-UQty4dKV?vehicle=' + name, external: false });
+}
+
+function copyById(id) {
+  const el = document.getElementById(id);
+  if (el) copyText(el.value);
 }
 
 function copyText(text) {
