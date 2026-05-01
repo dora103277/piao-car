@@ -166,6 +166,7 @@ const LIFF_ID = '2009926811-M9VIXbxs';
 const sb = supabase.createClient(SU, SK);
 
 let allCars = [], userRole = 'customer', curStatus = '在庫';
+const salesTexts = {};
 let curSlide = 0, slidePhotos = [];
 
 function toast(msg) {
@@ -333,6 +334,7 @@ function openDetail(id) {
   if (c.price) salesText += '售價：NT$ ' + c.price.toLocaleString() + '\n';
   if (c.description) salesText += '備註：' + c.description + '\n';
   salesText += '車輛所在：新北土城區\n聯絡：@704uyvki';
+  salesTexts[id] = salesText;
 
   document.getElementById('shc').innerHTML =
     photoHtml +
@@ -358,7 +360,7 @@ function openDetail(id) {
       '<div style="font-size:11px;color:#555;white-space:pre-wrap;line-height:1.7;">' + salesText + '</div>' +
       '<div class="sales-grid">' +
       '<textarea id="st-' + c.id + '" style="display:none;">' + salesText + '</textarea>' +
-      '<button class="s-btn s-copy" onclick="copyById(\'st-' + c.id + '\')">📋 複製內文</button>' +
+      '<button class="s-btn s-copy" onclick="copyCarText(\''+c.id+'\')">📋 複製內文</button>' +
       (photos.length > 0 ? '<button class="s-btn s-dl" onclick="dlPhotos(\'' + id + '\')">⬇️ 下載照片</button>' : '') +
       '</div></div>' : '') +
     '</div>';
@@ -388,6 +390,11 @@ function xOv() { document.getElementById('ov').classList.remove('on'); }
 function bookCar(name) {
   xOv();
   liff.openWindow({ url: 'https://liff.line.me/2009926811-UQty4dKV?vehicle=' + name, external: false });
+}
+
+function copyCarText(id) {
+  const text = salesTexts[id];
+  if (text) copyText(text);
 }
 
 function copyById(id) {
