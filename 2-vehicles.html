@@ -211,7 +211,23 @@ async function init() {
   }
 
   const { data } = await sb.from('vehicles').select('*').order('created_at', { ascending: false });
-  allCars = (data || []).map(row => ({ id: row.id, created_at: row.created_at, status: '在庫', ...(row.data || {}) }));
+  allCars = (data || []).map(row => {
+    const d = row.data || {};
+    return {
+      ...d,
+      id: row.id,
+      created_at: row.created_at,
+      status: d.status || '在庫',
+      entry_date: d.entry_date || d.date || '',
+      year: d.year ? parseInt(d.year) || d.year : null,
+      parts: d.parts || d.Hmountparts || [],
+      mileage: d.mileage || d.km || '',
+      cost: d.cost || 0,
+      price: d.price || 0,
+      photos: d.photos || [],
+      name: d.name || '',
+    };
+  });
 
   // 填年份選單
   const years = [...new Set(allCars.filter(c => c.year).map(c => c.year))].sort((a, b) => b - a);
