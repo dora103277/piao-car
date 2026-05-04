@@ -207,9 +207,10 @@ async function init() {
     updateSoldTabs();
   } catch (e) {
     if (dbg) { dbg.style.background='red'; dbg.textContent='錯誤:' + e.message; }
+    // LIFF 失敗但仍繼續載入車輛資料
   }
 
-  const { data } = await sb.from('vehicles').select('*').order('entry_date', { ascending: false });
+  const { data } = await sb.from('vehicles').select('*').order('created_at', { ascending: false });
   allCars = data || [];
 
   // 填年份選單
