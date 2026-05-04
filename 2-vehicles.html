@@ -202,8 +202,8 @@ async function init() {
     await liff.init({ liffId: LIFF_ID });
     if (!liff.isLoggedIn()) { liff.login(); return; }
     const p = await liff.getProfile();
-    const { data: m } = await sb.from('members').select('role').eq('line_user_id', p.userId).single();
-    if (m) userRole = m.role || 'customer';
+    const { data: m } = await sb.from('members').select('role').eq('line_user_id', p.userId).maybeSingle();
+    userRole = (m && m.role) ? m.role : 'customer';
     if (dbg) { dbg.style.background='#333'; dbg.textContent='ID末6:' + p.userId.slice(-6) + ' 角色:' + userRole; }
     updateSoldTabs();
   } catch (e) {
@@ -235,6 +235,7 @@ function updateSoldTabs() {
 }
 
 function render() {
+  updateSoldTabs();
   const q = (document.getElementById('search').value || '').toLowerCase();
   const fPrice = parseInt(document.getElementById('f-price').value) || 0;
   const fYear = parseInt(document.getElementById('f-year').value) || 0;
