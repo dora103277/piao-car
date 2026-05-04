@@ -211,7 +211,7 @@ async function init() {
   }
 
   const { data } = await sb.from('vehicles').select('*').order('created_at', { ascending: false });
-  allCars = (data || []).map(row => ({ id: row.id, created_at: row.created_at, ...(row.data || {}) }));
+  allCars = (data || []).map(row => ({ id: row.id, created_at: row.created_at, status: '在庫', ...(row.data || {}) }));
 
   // 填年份選單
   const years = [...new Set(allCars.filter(c => c.year).map(c => c.year))].sort((a, b) => b - a);
