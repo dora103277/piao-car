@@ -193,6 +193,7 @@ function setTheme(name) {
 
 const canSeePlate = () => ['boss', 'secretary'].includes(userRole);
 const isBoss = () => ['boss', 'secretary'].includes(userRole);
+const isSecretary = () => userRole === 'secretary';
 const isSales = () => ['boss', 'secretary', 'sales'].includes(userRole);
 
 async function init() {
