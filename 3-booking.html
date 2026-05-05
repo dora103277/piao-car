@@ -368,6 +368,19 @@ async function submitBooking() {
 
   if (error) { alert('送出失敗：' + error.message); btn.disabled = false; btn.textContent = '確認預約 ✨'; return; }
 
+  // 送出通知給老闆/秘書/技師
+  try {
+    const notifyType = bType === 'bike' ? 'booking' : 'maintenance';
+    await fetch('https://ufgpslpjtpzrtctrwdmj.supabase.co/functions/v1/line-notify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SK },
+      body: JSON.stringify({
+        type: notifyType,
+        data: { car: vname || '未指定', name, date, time: timeStr, phone }
+      })
+    });
+  } catch(e) { console.log('通知失敗', e); }
+
   document.getElementById('formArea').style.display = 'none';
   document.getElementById('successScreen').classList.add('on');
   document.getElementById('successCard').innerHTML =
