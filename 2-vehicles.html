@@ -260,7 +260,10 @@ function render() {
   document.getElementById('carList').innerHTML = list.map(c => {
     const photos = c.photos || [];
     const parts = c.parts || [];
-    const pt = parts.reduce((s, p) => s + (parseInt(p.amount) || 0), 0);
+    const realParts = parts.filter(p => !p._meta);
+    const mileageApprox = parts.some(p => p._meta && p.name === '__mileage_approx__');
+    const mileageDisplay = c.mileage ? (mileageApprox ? Math.floor(c.mileage / 1000) + 'xxx' : c.mileage.toLocaleString()) : '';
+    const pt = realParts.reduce((s, p) => s + (parseInt(p.amount) || 0), 0);
     const tc = (c.cost || 0) + pt;
     const isSold = c.status === '已售出';
 
@@ -282,7 +285,7 @@ function render() {
       '<div class="car-head"><span class="car-name">' + c.name + '</span><span class="spill' + (isSold ? ' sold' : '') + '">' + c.status + '</span></div>' +
       '<div class="car-tags">' +
       (c.year ? '<span class="car-tag">' + c.year + '年</span>' : '') +
-      (c.mileage ? '<span class="car-tag">' + c.mileage + 'km</span>' : '') +
+      (mileageDisplay ? '<span class="car-tag">' + mileageDisplay + 'km</span>' : '') +
       (canSeePlate() && c.plate ? '<span class="car-tag">' + c.plate + '</span>' : '') +
       (c.color ? '<span class="car-tag">' + c.color + '</span>' : '') +
       '</div>' +
@@ -317,7 +320,10 @@ function openDetail(id) {
   if (!c) return;
   const photos = c.photos || [];
   const parts = c.parts || [];
-  const pt = parts.reduce((s, p) => s + (parseInt(p.amount) || 0), 0);
+  const realParts = parts.filter(p => !p._meta);
+  const mileageApprox = parts.some(p => p._meta && p.name === '__mileage_approx__');
+  const mileageDisplay = c.mileage ? (mileageApprox ? Math.floor(c.mileage / 1000) + 'xxx' : c.mileage.toLocaleString()) : null;
+  const pt = realParts.reduce((s, p) => s + (parseInt(p.amount) || 0), 0);
   const tc = (c.cost || 0) + pt;
   const isSold = c.status === '已售出';
   curSlide = 0; slidePhotos = photos;
@@ -340,7 +346,7 @@ function openDetail(id) {
   if (c.name) salesText += '車輛：' + c.name + '\n';
   if (c.year) salesText += '年份：' + c.year + '年\n';
   if (c.modification) salesText += '改裝：' + c.modification + '\n';
-  if (c.mileage) salesText += '里程：' + c.mileage + 'km\n';
+  if (c.mileage) salesText += '里程：' + mileageDisplay + 'km\n';
   if (c.price) salesText += '售價：NT$ ' + c.price.toLocaleString() + '\n';
   if (c.description) salesText += '備註：' + c.description + '\n';
   salesText += '車輛所在：新北土城區\n聯絡：@704uyvki';
@@ -351,7 +357,7 @@ function openDetail(id) {
     '<div style="font-size:19px;font-weight:900;color:var(--br);margin-bottom:4px;">🏍️ ' + c.name + '</div>' +
     '<div style="font-size:21px;font-weight:900;color:var(--pk);margin-bottom:12px;">' + (c.price ? 'NT$ ' + c.price.toLocaleString() : '洽詢價格') + '</div>' +
     '<div class="dr"><span class="k">年份</span><span class="v">' + (c.year || '—') + '年</span></div>' +
-    '<div class="dr"><span class="k">里程</span><span class="v">' + (c.mileage || '—') + 'km</span></div>' +
+    '<div class="dr"><span class="k">里程</span><span class="v">' + (mileageDisplay ? mileageDisplay + 'km' : '—') + '</span></div>' +
     (canSeePlate() ? '<div class="dr"><span class="k">車牌</span><span class="v">' + (c.plate || '—') + '</span></div>' : '') +
     (c.color ? '<div class="dr"><span class="k">顏色</span><span class="v">' + c.color + '</span></div>' : '') +
     (c.modification ? '<div class="dr"><span class="k">改裝</span><span class="v" style="text-align:right;max-width:60%;line-height:1.5;">' + c.modification + '</span></div>' : '') +
@@ -359,7 +365,7 @@ function openDetail(id) {
     (c.description ? '<div class="desc-box">' + c.description + '</div>' : '') +
     (isBoss() ? '<div class="boss-box"><div style="font-weight:700;margin-bottom:5px;">📊 成本明細</div>' +
       '<div class="pi"><span>車輛成本</span><span>NT$ ' + (c.cost || 0).toLocaleString() + '</span></div>' +
-      parts.map(p => '<div class="pi"><span>└ ' + p.name + '</span><span>NT$ ' + (p.amount || 0).toLocaleString() + '</span></div>').join('') +
+      realParts.map(p => '<div class="pi"><span>└ ' + p.name + '</span><span>NT$ ' + (p.amount || 0).toLocaleString() + '</span></div>').join('') +
       '<div class="pi" style="font-weight:700;border-top:1px solid #e0c040;margin-top:3px;padding-top:3px;"><span>總成本</span><span>NT$ ' + tc.toLocaleString() + '</span></div>' +
       (c.price ? '<div class="pi" style="font-weight:900;color:' + ((c.price - tc) >= 0 ? 'var(--gn)' : 'var(--rd)') + '"><span>毛利</span><span>NT$ ' + (c.price - tc).toLocaleString() + '</span></div>' : '') +
       '</div>' : '') +
