@@ -90,7 +90,7 @@ async function init() {
   }
 
   let query = sb.from('installments').select('*').order('created_at', { ascending: false });
-  if (role === 'customer') query = query.eq('line_user_id', lineId);
+  if (role !== 'boss' && role !== 'secretary') query = query.eq('line_user_id', lineId);
 
   const { data } = await query;
   const list = data || [];
@@ -133,7 +133,7 @@ async function init() {
     html += `
       <div class="inst-card">
         <div class="inst-head">
-          <span class="inst-vehicle">📋 ${inst.vehicle_name}</span>
+          <span class="inst-vehicle">🚗 ${inst.vehicle_name}</span>
           <span class="inst-status s-${inst.status}">${inst.status}</span>
         </div>
         <div class="inst-body">
