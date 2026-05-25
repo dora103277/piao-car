@@ -53,6 +53,14 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--pink-light);min-heig
 .empty-icon{font-size:60px;margin-bottom:16px;}
 .empty h3{font-size:15px;font-weight:700;color:var(--brown);}
 .empty p{font-size:13px;color:#bbb;margin-top:8px;line-height:1.6;}
+.toggle-btn{background:none;border:1px solid var(--pink-soft);border-radius:8px;padding:6px 14px;font-size:12px;color:var(--pink);cursor:pointer;margin-top:10px;width:100%;}
+.pay-history{margin-top:12px;border-top:1px solid var(--pink-soft);padding-top:12px;display:none;}
+.pay-history.open{display:block;}
+.pay-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f5f5f5;font-size:12px;}
+.pay-row:last-child{border-bottom:none;}
+.pay-row .amt{font-weight:700;color:var(--brown);}
+.pay-row .dt{color:#aaa;}
+.pay-row .nt{color:#888;font-size:11px;}
 </style>
 </head>
 <body>
@@ -94,6 +102,17 @@ async function init() {
 
   const { data } = await query;
   const list = data || [];
+
+  // Fetch payment history for all installments
+  const ids = list.map(i => i.id);
+  let payMap = {};
+  if (ids.length > 0) {
+    const { data: pays } = await sb.from('installment_payments').select('*').in('installment_id', ids).order('created_at', { ascending: false });
+    (pays || []).forEach(p => {
+      if (!payMap[p.installment_id]) payMap[p.installment_id] = [];
+      payMap[p.installment_id].push(p);
+    });
+  }
 
   if (!list.length) {
     document.getElementById('content').innerHTML = `
@@ -154,6 +173,18 @@ async function init() {
             <div class="inst-item"><div class="ik">開始日期</div><div class="iv">${inst.start_date ? new Date(inst.start_date).toLocaleDateString('zh-TW') : '—'}</div></div>
             <div class="inst-item"><div class="ik">結束日期</div><div class="iv">${inst.end_date ? new Date(inst.end_date).toLocaleDateString('zh-TW') : '—'}</div></div>
           </div>
+          ${(payMap[inst.id] && payMap[inst.id].length > 0) ? `
+          <button class="toggle-btn" onclick="this.nextElementSibling.classList.toggle('open');this.textContent=this.nextElementSibling.classList.contains('open')?'▲ 收起還款記錄':'▼ 查看還款記錄（${payMap[inst.id].length}筆）">▼ 查看還款記錄（${payMap[inst.id].length}筆）</button>
+          <div class="pay-history">
+            ${payMap[inst.id].map(p => `
+            <div class="pay-row">
+              <div>
+                <div class="amt">NT$ ${p.amount.toLocaleString()}</div>
+                ${p.note ? `<div class="nt">📝 ${p.note}</div>` : ''}
+              </div>
+              <div class="dt">${new Date(p.created_at).toLocaleDateString('zh-TW')}</div>
+            </div>`).join('')}
+          </div>` : ''}
         </div>
       </div>
     `;
